@@ -1,5 +1,8 @@
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=CustomerSupportCrm;Trusted_Connection=True;TrustServerCertificate=True;"
+  },
+  "Jwt": {
+    "SigningKey": "dev-only-signing-key-change-me-in-any-non-dev-env-min-32-chars"
   }
 }
