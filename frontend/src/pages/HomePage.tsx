@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { httpClient } from '../api/httpClient';
 import { useAppStore } from '../store/useAppStore';
+import PageContainer from '../components/layout/PageContainer';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+
+type HealthStatus = 'unknown' | 'unreachable' | string;
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const appName = useAppStore((s) => s.appName);
-  const [health, setHealth] = useState<string>('unknown');
+  const [health, setHealth] = useState<HealthStatus>('unknown');
 
   useEffect(() => {
     httpClient
@@ -13,10 +19,24 @@ export default function HomePage() {
       .catch(() => setHealth('unreachable'));
   }, []);
 
+  const healthLabel =
+    health === 'unknown'
+      ? t('home.statusUnknown')
+      : health === 'unreachable'
+        ? t('home.statusUnreachable')
+        : health;
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50">
-      <h1 className="text-3xl font-semibold text-slate-800">{appName}</h1>
-      <p className="text-slate-600">Backend health: {health}</p>
-    </main>
+    <PageContainer>
+      <div className="w-full flex justify-end">
+        <LanguageSwitcher />
+      </div>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800 text-center">
+        {appName}
+      </h1>
+      <p className="text-slate-600 text-center">
+        {t('home.backendHealth')}: {healthLabel}
+      </p>
+    </PageContainer>
   );
 }
