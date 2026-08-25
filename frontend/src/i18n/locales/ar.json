@@ -1,0 +1,13 @@
+{
+  "common": {
+    "appName": "نظام دعم العملاء",
+    "language": "اللغة",
+    "languageEnglish": "English",
+    "languageArabic": "العربية"
+  },
+  "home": {
+    "backendHealth": "حالة الخادم",
+    "statusUnknown": "غير معروف",
+    "statusUnreachable": "غير متاح"
+  }
+}

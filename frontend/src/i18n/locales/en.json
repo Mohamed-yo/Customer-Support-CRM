@@ -1,0 +1,13 @@
+{
+  "common": {
+    "appName": "Customer Support CRM",
+    "language": "Language",
+    "languageEnglish": "English",
+    "languageArabic": "العربية"
+  },
+  "home": {
+    "backendHealth": "Backend health",
+    "statusUnknown": "unknown",
+    "statusUnreachable": "unreachable"
+  }
+}
