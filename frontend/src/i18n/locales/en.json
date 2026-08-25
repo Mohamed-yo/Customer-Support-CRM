@@ -9,5 +9,19 @@
     "backendHealth": "Backend health",
     "statusUnknown": "unknown",
     "statusUnreachable": "unreachable"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…"
+    },
+    "logout": "Sign out",
+    "errors": {
+      "invalidCredentials": "Invalid email or password.",
+      "network": "Could not reach the server. Please try again."
+    }
   }
 }

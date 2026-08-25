@@ -9,5 +9,19 @@
     "backendHealth": "حالة الخادم",
     "statusUnknown": "غير معروف",
     "statusUnreachable": "غير متاح"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…"
+    },
+    "logout": "تسجيل الخروج",
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "network": "تعذر الوصول إلى الخادم. حاول مرة أخرى."
+    }
   }
 }
