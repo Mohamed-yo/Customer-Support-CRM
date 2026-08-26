@@ -5,6 +5,14 @@ export interface LoginResponse {
   email: string;
   displayName: string;
   expiresAtUtc: string;
+  roles: string[];
+}
+
+export interface MeResponse {
+  id: string;
+  email: string;
+  displayName: string;
+  roles: string[];
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -12,7 +20,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return data;
 }
 
-export async function fetchMe() {
-  const { data } = await httpClient.get('/api/auth/me');
+export async function fetchMe(): Promise<MeResponse> {
+  const { data } = await httpClient.get<MeResponse>('/api/auth/me');
   return data;
 }

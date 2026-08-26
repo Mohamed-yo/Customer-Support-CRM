@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export interface AuthUser {
   email: string;
   displayName: string;
+  roles: string[];
 }
 
 interface AuthState {
@@ -13,6 +14,7 @@ interface AuthState {
   setSession: (payload: { token: string; user: AuthUser; expiresAtUtc: string }) => void;
   clearSession: () => void;
   isAuthenticated: () => boolean;
+  hasRole: (role: string) => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,6 +30,9 @@ export const useAuthStore = create<AuthState>()(
         if (!token || !expiresAtUtc) return false;
         return new Date(expiresAtUtc).getTime() > Date.now();
       },
+      // Optional chaining on `.roles` too: a session persisted before this story
+      // lacks the field entirely (Zustand's shallow merge won't backfill it).
+      hasRole: (role) => get().user?.roles?.includes(role) ?? false,
     }),
     {
       name: 'cscrm-auth-store',

@@ -11,23 +11,47 @@ namespace CustomerSupportCrm.Api.Data;
 /// </summary>
 public static class SeedData
 {
-    public static async Task EnsureSeedUserAsync(AppDbContext db, PasswordHasher<User> passwordHasher)
+    private static readonly string[] SeedRoleNames = { "Admin", "Agent" };
+
+    public static async Task EnsureSeedRolesAsync(AppDbContext db)
     {
-        if (await db.Users.AnyAsync())
+        foreach (var name in SeedRoleNames)
         {
-            return;
+            if (!await db.Roles.AnyAsync(r => r.Name == name))
+            {
+                db.Roles.Add(new Role { Id = Guid.NewGuid(), Name = name });
+            }
         }
 
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "admin@example.com",
-            DisplayName = "Admin",
-            CreatedAtUtc = DateTime.UtcNow,
-        };
-        user.PasswordHash = passwordHasher.HashPassword(user, "Passw0rd!");
-
-        db.Users.Add(user);
         await db.SaveChangesAsync();
+    }
+
+    public static async Task EnsureSeedUserAsync(AppDbContext db, PasswordHasher<User> passwordHasher)
+    {
+        var user = await db.Users
+            .Include(u => u.UserRoles)
+            .SingleOrDefaultAsync(u => u.Email == "admin@example.com");
+
+        if (user is null)
+        {
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = "admin@example.com",
+                DisplayName = "Admin",
+                CreatedAtUtc = DateTime.UtcNow,
+            };
+            user.PasswordHash = passwordHasher.HashPassword(user, "Passw0rd!");
+
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+        }
+
+        var adminRole = await db.Roles.SingleOrDefaultAsync(r => r.Name == "Admin");
+        if (adminRole is not null && !user.UserRoles.Any(ur => ur.RoleId == adminRole.Id))
+        {
+            db.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = adminRole.Id });
+            await db.SaveChangesAsync();
+        }
     }
 }

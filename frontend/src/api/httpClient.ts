@@ -24,6 +24,10 @@ httpClient.interceptors.response.use(
     if (error.response?.status === 401) {
       useAuthStore.getState().clearSession();
     }
+    if (error.response?.status === 403) {
+      // Authenticated but not authorized for this resource — distinct from 401.
+      // Do NOT clear the session or redirect; the caller decides how to handle it.
+    }
     return Promise.reject(error);
   },
 );

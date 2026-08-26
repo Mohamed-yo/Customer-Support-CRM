@@ -15,7 +15,7 @@ public class JwtTokenService
         _configuration = configuration;
     }
 
-    public string IssueToken(User user, out DateTime expiresAtUtc)
+    public string IssueToken(User user, IEnumerable<string> roles, out DateTime expiresAtUtc)
     {
         var jwt = _configuration.GetSection("Jwt");
         var signingKey = jwt["SigningKey"]
@@ -24,12 +24,13 @@ public class JwtTokenService
 
         expiresAtUtc = DateTime.UtcNow.AddMinutes(expiryMinutes);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim("email", user.Email),
-            new Claim("name", user.DisplayName),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new("email", user.Email),
+            new("name", user.DisplayName),
         };
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),

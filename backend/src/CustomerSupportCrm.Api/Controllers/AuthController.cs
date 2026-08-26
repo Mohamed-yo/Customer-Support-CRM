@@ -27,7 +27,9 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == email);
+        var user = await _db.Users
+            .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+            .SingleOrDefaultAsync(u => u.Email == email);
         if (user is null)
         {
             return Unauthorized(new { error = "invalid_credentials" });
@@ -39,8 +41,9 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = "invalid_credentials" });
         }
 
-        var token = _tokenService.IssueToken(user, out var expiresAtUtc);
-        return Ok(new LoginResponse(token, user.Email, user.DisplayName, expiresAtUtc));
+        var roles = user.UserRoles.Select(ur => ur.Role.Name).OrderBy(n => n).ToList();
+        var token = _tokenService.IssueToken(user, roles, out var expiresAtUtc);
+        return Ok(new LoginResponse(token, user.Email, user.DisplayName, expiresAtUtc, roles));
     }
 
     [HttpGet("me")]
@@ -53,12 +56,15 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var user = await _db.Users.FindAsync(userId);
+        var user = await _db.Users
+            .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+            .SingleOrDefaultAsync(u => u.Id == userId);
         if (user is null)
         {
             return Unauthorized();
         }
 
-        return Ok(new MeResponse(user.Id, user.Email, user.DisplayName));
+        var roles = user.UserRoles.Select(ur => ur.Role.Name).OrderBy(n => n).ToList();
+        return Ok(new MeResponse(user.Id, user.Email, user.DisplayName, roles));
     }
 }
