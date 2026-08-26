@@ -23,5 +23,17 @@
       "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
       "network": "تعذر الوصول إلى الخادم. حاول مرة أخرى."
     }
+  },
+  "shell": {
+    "sidebar": "التنقل",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة",
+    "nav": {
+      "home": "الرئيسية"
+    },
+    "languageToggle": {
+      "switchToArabic": "التبديل إلى العربية",
+      "switchToEnglish": "التبديل إلى الإنجليزية"
+    }
   }
 }
