@@ -7,4 +7,5 @@ public class User
     public string DisplayName { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -58,8 +58,10 @@ if (app.Environment.IsDevelopment())
     try
     {
         using var scope = app.Services.CreateScope();
+        var seedDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await SeedData.EnsureSeedRolesAsync(seedDb);
         await SeedData.EnsureSeedUserAsync(
-            scope.ServiceProvider.GetRequiredService<AppDbContext>(),
+            seedDb,
             scope.ServiceProvider.GetRequiredService<PasswordHasher<User>>());
     }
     catch (Exception ex)

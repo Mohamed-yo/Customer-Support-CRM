@@ -27,7 +27,7 @@ export default function LoginPage() {
       const response = await login(email, password);
       setSession({
         token: response.token,
-        user: { email: response.email, displayName: response.displayName },
+        user: { email: response.email, displayName: response.displayName, roles: response.roles },
         expiresAtUtc: response.expiresAtUtc,
       });
       navigate('/', { replace: true });
