@@ -23,5 +23,17 @@
       "invalidCredentials": "Invalid email or password.",
       "network": "Could not reach the server. Please try again."
     }
+  },
+  "shell": {
+    "sidebar": "Navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "nav": {
+      "home": "Home"
+    },
+    "languageToggle": {
+      "switchToArabic": "Switch to Arabic",
+      "switchToEnglish": "Switch to English"
+    }
   }
 }
