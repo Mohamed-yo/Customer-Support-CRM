@@ -50,6 +50,7 @@
       "subject": "الموضوع",
       "customer": "العميل",
       "status": "الحالة",
+      "assignedTo": "معيَّن إلى",
       "createdAt": "تاريخ الإنشاء"
     },
     "form": {
@@ -57,7 +58,11 @@
       "customerPlaceholder": "اختر عميلاً",
       "subject": "الموضوع",
       "description": "الوصف",
-      "status": "الحالة"
+      "status": "الحالة",
+      "assignedTo": "معيَّن إلى"
+    },
+    "assignedTo": {
+      "unassigned": "غير معيَّن"
     },
     "status": {
       "Open": "مفتوحة",
@@ -73,7 +78,8 @@
       "description_max": "يجب ألا يتجاوز الوصف 4000 حرف.",
       "status_invalid": "يرجى اختيار حالة صالحة.",
       "customer_not_found": "يرجى اختيار عميل.",
-      "ticket_not_found": "التذكرة غير موجودة."
+      "ticket_not_found": "التذكرة غير موجودة.",
+      "assignee_not_found": "الشخص المحدد ليس وكيلاً أو مسؤولاً صالحاً."
     },
     "actions": {
       "save": "حفظ",

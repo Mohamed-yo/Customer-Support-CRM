@@ -84,6 +84,12 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(t => t.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // SetNull (not Restrict): unlike Customer, an agent leaving the system should
+            // not block ticket updates. The ticket falls back to the valid "Unassigned" state.
+            e.HasOne(t => t.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(t => t.AssignedToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

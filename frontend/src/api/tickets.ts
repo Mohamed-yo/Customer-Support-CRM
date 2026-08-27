@@ -11,6 +11,8 @@ export interface Ticket {
   description: string | null;
   status: TicketStatus;
   createdAtUtc: string;
+  assignedToUserId: string | null;
+  assignedToDisplayName: string | null;
 }
 
 export interface TicketUpsert {
@@ -18,6 +20,12 @@ export interface TicketUpsert {
   subject: string;
   description?: string | null;
   status: TicketStatus;
+  assignedToUserId?: string | null;
+}
+
+export interface AssignableUser {
+  id: string;
+  displayName: string;
 }
 
 export async function listTickets(): Promise<Ticket[]> {
@@ -41,4 +49,9 @@ export async function updateTicket(id: string, body: TicketUpsert): Promise<void
 
 export async function deleteTicket(id: string): Promise<void> {
   await httpClient.delete<void>(`/api/tickets/${id}`);
+}
+
+export async function listAssignableUsers(): Promise<AssignableUser[]> {
+  const { data } = await httpClient.get<AssignableUser[]>('/api/tickets/assignable-users');
+  return data;
 }

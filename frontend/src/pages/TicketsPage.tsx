@@ -2,10 +2,12 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   TICKET_STATUSES,
+  type AssignableUser,
   type Ticket,
   type TicketStatus,
   createTicket,
   deleteTicket,
+  listAssignableUsers,
   listTickets,
   updateTicket,
 } from '../api/tickets';
@@ -17,9 +19,16 @@ interface TicketFormValues {
   subject: string;
   description: string;
   status: TicketStatus;
+  assignedToUserId: string;
 }
 
-const EMPTY_FORM: TicketFormValues = { customerId: '', subject: '', description: '', status: 'Open' };
+const EMPTY_FORM: TicketFormValues = {
+  customerId: '',
+  subject: '',
+  description: '',
+  status: 'Open',
+  assignedToUserId: '',
+};
 
 interface FormErrors {
   customerId?: string;
@@ -59,6 +68,7 @@ export default function TicketsPage() {
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,10 +93,11 @@ export default function TicketsPage() {
   const loadData = () => {
     setLoading(true);
     setError(null);
-    Promise.all([listTickets(), listCustomers()])
-      .then(([ticketData, customerData]) => {
+    Promise.all([listTickets(), listCustomers(), listAssignableUsers()])
+      .then(([ticketData, customerData, assignableUserData]) => {
         setTickets(ticketData);
         setCustomers(customerData);
+        setAssignableUsers(assignableUserData);
       })
       .catch(() => setError(t('tickets.errors.loadFailed')))
       .finally(() => setLoading(false));
@@ -117,6 +128,7 @@ export default function TicketsPage() {
       subject: ticket.subject,
       description: ticket.description ?? '',
       status: ticket.status,
+      assignedToUserId: ticket.assignedToUserId ?? '',
     });
     resetFormState();
     setFormOpen(true);
@@ -143,6 +155,7 @@ export default function TicketsPage() {
       subject: formValues.subject.trim(),
       description: formValues.description.trim() || null,
       status: formValues.status,
+      assignedToUserId: formValues.assignedToUserId || null,
     };
 
     setSubmitting(true);
@@ -156,7 +169,13 @@ export default function TicketsPage() {
       loadData();
     } catch (err) {
       const code = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      const knownCodes = ['subject_required', 'status_invalid', 'customer_not_found', 'ticket_not_found'];
+      const knownCodes = [
+        'subject_required',
+        'status_invalid',
+        'customer_not_found',
+        'ticket_not_found',
+        'assignee_not_found',
+      ];
       setFormError(
         code && knownCodes.includes(code) ? t(`tickets.errors.${code}`) : t('tickets.errors.saveFailed'),
       );
@@ -211,6 +230,9 @@ export default function TicketsPage() {
                     {t('tickets.columns.status')}
                   </th>
                   <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {t('tickets.columns.assignedTo')}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">
                     {t('tickets.columns.createdAt')}
                   </th>
                   <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500" />
@@ -225,6 +247,9 @@ export default function TicketsPage() {
                     <td className="px-4 py-3 text-slate-800">{ticket.subject}</td>
                     <td className="px-4 py-3 text-slate-600">{ticket.customerFullName}</td>
                     <td className="px-4 py-3 text-slate-600">{t(`tickets.status.${ticket.status}`)}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {ticket.assignedToDisplayName ?? t('tickets.assignedTo.unassigned')}
+                    </td>
                     <td className="px-4 py-3 text-slate-600">
                       {new Date(ticket.createdAtUtc).toLocaleDateString()}
                     </td>
@@ -288,6 +313,22 @@ export default function TicketsPage() {
                 ))}
               </select>
               {showCustomerError && <span className="text-sm text-red-600">{t(fieldErrors.customerId!)}</span>}
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <span>{t('tickets.form.assignedTo')}</span>
+              <select
+                value={formValues.assignedToUserId}
+                onChange={(e) => setFormValues((v) => ({ ...v, assignedToUserId: e.target.value }))}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800"
+              >
+                <option value="">{t('tickets.assignedTo.unassigned')}</option>
+                {assignableUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.displayName}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="flex flex-col gap-1 text-sm text-slate-700">
