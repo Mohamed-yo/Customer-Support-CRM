@@ -1,3 +1,4 @@
+using CustomerSupportCrm.Api.Auditing;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -14,12 +15,18 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _db;
     private readonly PasswordHasher<User> _passwordHasher;
     private readonly JwtTokenService _tokenService;
+    private readonly AuditLogger _audit;
 
-    public AuthController(AppDbContext db, PasswordHasher<User> passwordHasher, JwtTokenService tokenService)
+    public AuthController(
+        AppDbContext db,
+        PasswordHasher<User> passwordHasher,
+        JwtTokenService tokenService,
+        AuditLogger audit)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
+        _audit = audit;
     }
 
     [HttpPost("login")]
@@ -32,17 +39,39 @@ public class AuthController : ControllerBase
             .SingleOrDefaultAsync(u => u.Email == email);
         if (user is null)
         {
+            await _audit.WriteAsync(new AuditLog
+            {
+                Action = "auth.login",
+                Outcome = "failure",
+                ActorEmail = email,
+                Details = "user_not_found",
+            });
             return Unauthorized(new { error = "invalid_credentials" });
         }
 
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (result == PasswordVerificationResult.Failed)
         {
+            await _audit.WriteAsync(new AuditLog
+            {
+                Action = "auth.login",
+                Outcome = "failure",
+                ActorUserId = user.Id,
+                ActorEmail = email,
+                Details = "invalid_password",
+            });
             return Unauthorized(new { error = "invalid_credentials" });
         }
 
         var roles = user.UserRoles.Select(ur => ur.Role.Name).OrderBy(n => n).ToList();
         var token = _tokenService.IssueToken(user, roles, out var expiresAtUtc);
+        await _audit.WriteAsync(new AuditLog
+        {
+            Action = "auth.login",
+            Outcome = "success",
+            ActorUserId = user.Id,
+            ActorEmail = email,
+        });
         return Ok(new LoginResponse(token, user.Email, user.DisplayName, expiresAtUtc, roles));
     }
 

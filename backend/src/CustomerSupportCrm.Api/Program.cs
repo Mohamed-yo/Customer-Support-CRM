@@ -1,3 +1,4 @@
+using CustomerSupportCrm.Api.Auditing;
 using CustomerSupportCrm.Api.Auth;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
@@ -14,6 +15,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<PasswordHasher<User>>();
 builder.Services.AddSingleton<JwtTokenService>();
+// Scoped: AuditLogger takes a scoped AppDbContext. A targeted writer at the two
+// known mutation points (login, role assignment) is used instead of a generic
+// SaveChanges interceptor, which would also audit unrelated calls (e.g. the dev seed).
+builder.Services.AddScoped<AuditLogger>();
 
 var jwt = builder.Configuration.GetSection("Jwt");
 builder.Services
