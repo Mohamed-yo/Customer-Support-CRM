@@ -1,4 +1,5 @@
 import { httpClient } from './httpClient';
+import type { HistoryEntry } from './tickets';
 
 export interface Customer {
   id: string;
@@ -35,4 +36,9 @@ export async function updateCustomer(id: string, body: CustomerUpsert): Promise<
 
 export async function deleteCustomer(id: string): Promise<void> {
   await httpClient.delete<void>(`/api/customers/${id}`);
+}
+
+export async function getCustomerHistory(id: string): Promise<HistoryEntry[]> {
+  const { data } = await httpClient.get<HistoryEntry[]>(`/api/customers/${id}/history`);
+  return data;
 }

@@ -16,5 +16,11 @@ public class Ticket
     // Allowed values: "Open", "InProgress", "Closed". Enforced in controller.
     public string Status { get; set; } = "Open";
 
+    // Allowed values: "General", "Billing", "Technical", "Account". Enforced in controller.
+    public string Category { get; set; } = "General";
+
+    // Allowed values: "Low", "Normal", "High", "Urgent". Enforced in controller.
+    public string Priority { get; set; } = "Normal";
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

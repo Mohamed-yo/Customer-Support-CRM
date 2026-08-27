@@ -11,6 +11,7 @@ const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [
   { to: '/', labelKey: 'shell.nav.home' },
   { to: '/customers', labelKey: 'shell.nav.customers' },
   { to: '/tickets', labelKey: 'shell.nav.tickets' },
+  { to: '/quick-replies', labelKey: 'shell.nav.quickReplies' },
 ];
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>

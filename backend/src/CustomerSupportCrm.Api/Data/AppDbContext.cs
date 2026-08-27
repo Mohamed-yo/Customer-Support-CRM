@@ -16,6 +16,10 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<TicketNote> TicketNotes => Set<TicketNote>();
+    public DbSet<TicketAttachment> TicketAttachments => Set<TicketAttachment>();
+    public DbSet<TicketTask> TicketTasks => Set<TicketTask>();
+    public DbSet<QuickReplyTemplate> QuickReplyTemplates => Set<QuickReplyTemplate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +80,8 @@ public class AppDbContext : DbContext
             e.Property(t => t.Subject).IsRequired().HasMaxLength(200);
             e.Property(t => t.Description).HasMaxLength(4000);
             e.Property(t => t.Status).IsRequired().HasMaxLength(20);
+            e.Property(t => t.Category).IsRequired().HasMaxLength(32);
+            e.Property(t => t.Priority).IsRequired().HasMaxLength(16);
             e.HasIndex(t => t.CreatedAtUtc);
             // Restrict (not Cascade): a customer with existing tickets cannot be silently
             // orphaned by deleting the customer. Deleting such a customer fails loudly
@@ -90,6 +96,60 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(t => t.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<TicketNote>(e =>
+        {
+            e.HasKey(n => n.Id);
+            e.Property(n => n.Body).IsRequired().HasMaxLength(4000);
+            e.HasIndex(n => n.TicketId);
+            e.HasOne(n => n.Ticket)
+                .WithMany()
+                .HasForeignKey(n => n.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(n => n.AuthorUser)
+                .WithMany()
+                .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TicketAttachment>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.FileName).IsRequired().HasMaxLength(260);
+            e.Property(a => a.ContentType).IsRequired().HasMaxLength(200);
+            e.Property(a => a.Content).HasColumnType("varbinary(max)");
+            e.HasIndex(a => a.TicketId);
+            e.HasOne(a => a.Ticket)
+                .WithMany()
+                .HasForeignKey(a => a.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(a => a.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.UploadedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TicketTask>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Title).IsRequired().HasMaxLength(400);
+            e.HasIndex(t => t.TicketId);
+            e.HasOne(t => t.Ticket)
+                .WithMany()
+                .HasForeignKey(t => t.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<QuickReplyTemplate>(e =>
+        {
+            e.HasKey(q => q.Id);
+            e.Property(q => q.Title).IsRequired().HasMaxLength(200);
+            e.Property(q => q.Body).IsRequired().HasMaxLength(4000);
+            e.HasOne(q => q.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(q => q.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
