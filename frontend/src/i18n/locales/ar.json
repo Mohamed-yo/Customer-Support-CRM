@@ -39,6 +39,47 @@
       "cancel": "إلغاء"
     }
   },
+  "tickets": {
+    "title": "التذاكر",
+    "new": "تذكرة جديدة",
+    "edit": "تعديل التذكرة",
+    "delete": "حذف",
+    "deleteConfirm": "هل تريد حذف هذه التذكرة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "empty": "لا توجد تذاكر بعد.",
+    "columns": {
+      "subject": "الموضوع",
+      "customer": "العميل",
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "form": {
+      "customer": "العميل",
+      "customerPlaceholder": "اختر عميلاً",
+      "subject": "الموضوع",
+      "description": "الوصف",
+      "status": "الحالة"
+    },
+    "status": {
+      "Open": "مفتوحة",
+      "InProgress": "قيد المعالجة",
+      "Closed": "مغلقة"
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل التذاكر.",
+      "saveFailed": "تعذر حفظ التذكرة.",
+      "deleteFailed": "تعذر حذف التذكرة.",
+      "subject_required": "الموضوع مطلوب.",
+      "subject_max": "يجب ألا يتجاوز الموضوع 200 حرف.",
+      "description_max": "يجب ألا يتجاوز الوصف 4000 حرف.",
+      "status_invalid": "يرجى اختيار حالة صالحة.",
+      "customer_not_found": "يرجى اختيار عميل.",
+      "ticket_not_found": "التذكرة غير موجودة."
+    },
+    "actions": {
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    }
+  },
   "auth": {
     "login": {
       "title": "تسجيل الدخول",
@@ -59,7 +100,8 @@
     "closeMenu": "إغلاق القائمة",
     "nav": {
       "home": "الرئيسية",
-      "customers": "العملاء"
+      "customers": "العملاء",
+      "tickets": "التذاكر"
     },
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",

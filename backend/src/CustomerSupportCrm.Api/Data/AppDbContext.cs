@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Ticket> Tickets => Set<Ticket>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,6 +68,22 @@ public class AppDbContext : DbContext
             e.Property(c => c.Phone).HasMaxLength(64);
             e.HasIndex(c => c.Email); // non-unique: same email may appear on distinct customer records (no dedup this story)
             e.HasIndex(c => c.CreatedAtUtc);
+        });
+
+        modelBuilder.Entity<Ticket>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Subject).IsRequired().HasMaxLength(200);
+            e.Property(t => t.Description).HasMaxLength(4000);
+            e.Property(t => t.Status).IsRequired().HasMaxLength(20);
+            e.HasIndex(t => t.CreatedAtUtc);
+            // Restrict (not Cascade): a customer with existing tickets cannot be silently
+            // orphaned by deleting the customer. Deleting such a customer fails loudly
+            // until a follow-up story addresses cascading UX for dependent tickets.
+            e.HasOne(t => t.Customer)
+                .WithMany()
+                .HasForeignKey(t => t.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
