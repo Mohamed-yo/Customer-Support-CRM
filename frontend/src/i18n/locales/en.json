@@ -39,6 +39,47 @@
       "cancel": "Cancel"
     }
   },
+  "tickets": {
+    "title": "Tickets",
+    "new": "New ticket",
+    "edit": "Edit ticket",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this ticket? This cannot be undone.",
+    "empty": "No tickets yet.",
+    "columns": {
+      "subject": "Subject",
+      "customer": "Customer",
+      "status": "Status",
+      "createdAt": "Created"
+    },
+    "form": {
+      "customer": "Customer",
+      "customerPlaceholder": "Select a customer",
+      "subject": "Subject",
+      "description": "Description",
+      "status": "Status"
+    },
+    "status": {
+      "Open": "Open",
+      "InProgress": "In Progress",
+      "Closed": "Closed"
+    },
+    "errors": {
+      "loadFailed": "Failed to load tickets.",
+      "saveFailed": "Failed to save ticket.",
+      "deleteFailed": "Failed to delete ticket.",
+      "subject_required": "Subject is required.",
+      "subject_max": "Subject must be 200 characters or fewer.",
+      "description_max": "Description must be 4000 characters or fewer.",
+      "status_invalid": "Select a valid status.",
+      "customer_not_found": "Select a customer.",
+      "ticket_not_found": "Ticket not found."
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign in",
@@ -59,7 +100,8 @@
     "closeMenu": "Close menu",
     "nav": {
       "home": "Home",
-      "customers": "Customers"
+      "customers": "Customers",
+      "tickets": "Tickets"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
