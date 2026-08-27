@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,16 @@ public class AppDbContext : DbContext
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AuditLog>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Action).IsRequired().HasMaxLength(64);
+            e.Property(a => a.Outcome).IsRequired().HasMaxLength(64);
+            e.Property(a => a.ActorEmail).HasMaxLength(256);
+            e.Property(a => a.Details).HasMaxLength(512);
+            e.HasIndex(a => a.TimestampUtc);
         });
     }
 }
