@@ -7,7 +7,9 @@ public record TicketListItem(
     string Subject,
     string? Description,
     string Status,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    Guid? AssignedToUserId,
+    string? AssignedToDisplayName);
 
 public class TicketUpsertRequest
 {
@@ -15,4 +17,7 @@ public class TicketUpsertRequest
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Status { get; set; } = "Open";
+    public Guid? AssignedToUserId { get; set; }
 }
+
+public record AssignableUserItem(Guid Id, string DisplayName);

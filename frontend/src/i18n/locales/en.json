@@ -50,6 +50,7 @@
       "subject": "Subject",
       "customer": "Customer",
       "status": "Status",
+      "assignedTo": "Assigned to",
       "createdAt": "Created"
     },
     "form": {
@@ -57,7 +58,11 @@
       "customerPlaceholder": "Select a customer",
       "subject": "Subject",
       "description": "Description",
-      "status": "Status"
+      "status": "Status",
+      "assignedTo": "Assigned to"
+    },
+    "assignedTo": {
+      "unassigned": "Unassigned"
     },
     "status": {
       "Open": "Open",
@@ -73,7 +78,8 @@
       "description_max": "Description must be 4000 characters or fewer.",
       "status_invalid": "Select a valid status.",
       "customer_not_found": "Select a customer.",
-      "ticket_not_found": "Ticket not found."
+      "ticket_not_found": "Ticket not found.",
+      "assignee_not_found": "Selected assignee is not a valid Agent or Admin."
     },
     "actions": {
       "save": "Save",

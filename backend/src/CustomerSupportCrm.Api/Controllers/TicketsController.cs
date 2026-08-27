@@ -31,7 +31,21 @@ public class TicketsController : ControllerBase
             .OrderByDescending(t => t.CreatedAtUtc)
             .Select(t => new TicketListItem(
                 t.Id, t.CustomerId, t.Customer!.FullName,
-                t.Subject, t.Description, t.Status, t.CreatedAtUtc))
+                t.Subject, t.Description, t.Status, t.CreatedAtUtc,
+                t.AssignedToUserId,
+                t.AssignedToUser != null ? t.AssignedToUser.DisplayName : null))
+            .ToListAsync();
+
+        return Ok(items);
+    }
+
+    [HttpGet("assignable-users")]
+    public async Task<IActionResult> AssignableUsers([FromServices] AppDbContext db)
+    {
+        var items = await db.Users
+            .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Agent" || ur.Role!.Name == "Admin"))
+            .OrderBy(u => u.DisplayName)
+            .Select(u => new AssignableUserItem(u.Id, u.DisplayName))
             .ToListAsync();
 
         return Ok(items);
@@ -44,11 +58,26 @@ public class TicketsController : ControllerBase
             .Where(t => t.Id == id)
             .Select(t => new TicketListItem(
                 t.Id, t.CustomerId, t.Customer!.FullName,
-                t.Subject, t.Description, t.Status, t.CreatedAtUtc))
+                t.Subject, t.Description, t.Status, t.CreatedAtUtc,
+                t.AssignedToUserId,
+                t.AssignedToUser != null ? t.AssignedToUser.DisplayName : null))
             .SingleOrDefaultAsync();
 
         if (item is null) return NotFound(new { error = "ticket_not_found" });
         return Ok(item);
+    }
+
+    private static async Task<(bool ok, User? assignee)> TryResolveAssignee(
+        Guid? assignedToUserId, AppDbContext db)
+    {
+        if (!assignedToUserId.HasValue) return (true, null);
+
+        var assignee = await db.Users
+            .Where(u => u.Id == assignedToUserId.Value)
+            .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Agent" || ur.Role!.Name == "Admin"))
+            .SingleOrDefaultAsync();
+
+        return (assignee is not null, assignee);
     }
 
     [HttpPost]
@@ -70,6 +99,11 @@ public class TicketsController : ControllerBase
         {
             return BadRequest(new { error = "customer_not_found" });
         }
+        var (assigneeOk, assignee) = await TryResolveAssignee(request.AssignedToUserId, db);
+        if (!assigneeOk)
+        {
+            return BadRequest(new { error = "assignee_not_found" });
+        }
 
         var ticket = new Ticket
         {
@@ -77,6 +111,7 @@ public class TicketsController : ControllerBase
             Subject = request.Subject,
             Description = request.Description,
             Status = request.Status,
+            AssignedToUserId = assignee?.Id,
         };
         db.Tickets.Add(ticket);
         await db.SaveChangesAsync();
@@ -92,7 +127,8 @@ public class TicketsController : ControllerBase
 
         var item = new TicketListItem(
             ticket.Id, ticket.CustomerId, customer.FullName,
-            ticket.Subject, ticket.Description, ticket.Status, ticket.CreatedAtUtc);
+            ticket.Subject, ticket.Description, ticket.Status, ticket.CreatedAtUtc,
+            ticket.AssignedToUserId, assignee?.DisplayName);
         return CreatedAtAction(nameof(Get), new { id = ticket.Id }, item);
     }
 
@@ -116,6 +152,11 @@ public class TicketsController : ControllerBase
         {
             return BadRequest(new { error = "customer_not_found" });
         }
+        var (assigneeOk, assignee) = await TryResolveAssignee(request.AssignedToUserId, db);
+        if (!assigneeOk)
+        {
+            return BadRequest(new { error = "assignee_not_found" });
+        }
 
         var ticket = await db.Tickets.SingleOrDefaultAsync(t => t.Id == id);
         if (ticket is null) return NotFound(new { error = "ticket_not_found" });
@@ -124,6 +165,7 @@ public class TicketsController : ControllerBase
         ticket.Subject = request.Subject;
         ticket.Description = request.Description;
         ticket.Status = request.Status;
+        ticket.AssignedToUserId = assignee?.Id;
         await db.SaveChangesAsync();
 
         await audit.WriteAsync(new AuditLog

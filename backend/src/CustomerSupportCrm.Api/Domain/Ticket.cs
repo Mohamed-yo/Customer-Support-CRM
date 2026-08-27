@@ -7,6 +7,9 @@ public class Ticket
     public Guid CustomerId { get; set; }
     public Customer? Customer { get; set; }
 
+    public Guid? AssignedToUserId { get; set; }
+    public User? AssignedToUser { get; set; }
+
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
 
