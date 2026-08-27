@@ -10,6 +10,35 @@
     "statusUnknown": "غير معروف",
     "statusUnreachable": "غير متاح"
   },
+  "customers": {
+    "title": "العملاء",
+    "new": "عميل جديد",
+    "edit": "تعديل العميل",
+    "delete": "حذف",
+    "deleteConfirm": "هل تريد حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء.",
+    "empty": "لا يوجد عملاء بعد.",
+    "fields": {
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "createdAt": "تاريخ الإنشاء"
+    },
+    "validation": {
+      "nameRequired": "الاسم الكامل مطلوب.",
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صالح.",
+      "phoneInvalid": "يرجى إدخال رقم هاتف صالح."
+    },
+    "errors": {
+      "loadFailed": "تعذر تحميل العملاء.",
+      "saveFailed": "تعذر حفظ بيانات العميل.",
+      "deleteFailed": "تعذر حذف العميل."
+    },
+    "actions": {
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    }
+  },
   "auth": {
     "login": {
       "title": "تسجيل الدخول",
@@ -29,7 +58,8 @@
     "openMenu": "فتح القائمة",
     "closeMenu": "إغلاق القائمة",
     "nav": {
-      "home": "الرئيسية"
+      "home": "الرئيسية",
+      "customers": "العملاء"
     },
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",

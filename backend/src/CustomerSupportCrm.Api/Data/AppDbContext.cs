@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Customer> Customers => Set<Customer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +57,16 @@ public class AppDbContext : DbContext
             e.Property(a => a.ActorEmail).HasMaxLength(256);
             e.Property(a => a.Details).HasMaxLength(512);
             e.HasIndex(a => a.TimestampUtc);
+        });
+
+        modelBuilder.Entity<Customer>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.Property(c => c.FullName).IsRequired().HasMaxLength(200);
+            e.Property(c => c.Email).IsRequired().HasMaxLength(256);
+            e.Property(c => c.Phone).HasMaxLength(64);
+            e.HasIndex(c => c.Email); // non-unique: same email may appear on distinct customer records (no dedup this story)
+            e.HasIndex(c => c.CreatedAtUtc);
         });
     }
 }

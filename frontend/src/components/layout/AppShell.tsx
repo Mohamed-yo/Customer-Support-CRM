@@ -7,7 +7,10 @@ import LanguageToggle from '../LanguageToggle';
 
 // Extensibility point: future stories add sections here (Tickets, Customers, Agents,
 // Reports, Settings, ...) without touching the shell's structure.
-const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [{ to: '/', labelKey: 'shell.nav.home' }];
+const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [
+  { to: '/', labelKey: 'shell.nav.home' },
+  { to: '/customers', labelKey: 'shell.nav.customers' },
+];
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
   `rounded px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 ${

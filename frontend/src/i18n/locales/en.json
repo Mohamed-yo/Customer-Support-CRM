@@ -10,6 +10,35 @@
     "statusUnknown": "unknown",
     "statusUnreachable": "unreachable"
   },
+  "customers": {
+    "title": "Customers",
+    "new": "New customer",
+    "edit": "Edit customer",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this customer? This cannot be undone.",
+    "empty": "No customers yet.",
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "createdAt": "Created"
+    },
+    "validation": {
+      "nameRequired": "Full name is required.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "phoneInvalid": "Enter a valid phone number."
+    },
+    "errors": {
+      "loadFailed": "Failed to load customers.",
+      "saveFailed": "Failed to save customer.",
+      "deleteFailed": "Failed to delete customer."
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign in",
@@ -29,7 +58,8 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "nav": {
-      "home": "Home"
+      "home": "Home",
+      "customers": "Customers"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
