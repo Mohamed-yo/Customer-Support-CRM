@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface AuthUser {
+  id: string;
   email: string;
   displayName: string;
   roles: string[];
@@ -36,6 +37,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'cscrm-auth-store',
+      // v2: AuthUser gained `id` (Story 09, needed for the "My tickets" filter).
+      // Older persisted sessions have no way to backfill it, so migrate() drops
+      // them entirely rather than leaving a user object with a missing id.
+      version: 2,
+      migrate: () => ({ token: null, user: null, expiresAtUtc: null }),
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ token: state.token, user: state.user, expiresAtUtc: state.expiresAtUtc }),
     },

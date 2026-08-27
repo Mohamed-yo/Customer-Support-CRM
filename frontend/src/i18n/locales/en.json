@@ -14,6 +14,7 @@
     "title": "Customers",
     "new": "New customer",
     "edit": "Edit customer",
+    "view": "View",
     "delete": "Delete",
     "deleteConfirm": "Delete this customer? This cannot be undone.",
     "empty": "No customers yet.",
@@ -43,12 +44,17 @@
     "title": "Tickets",
     "new": "New ticket",
     "edit": "Edit ticket",
+    "view": "View",
     "delete": "Delete",
     "deleteConfirm": "Delete this ticket? This cannot be undone.",
     "empty": "No tickets yet.",
+    "scopeAll": "All tickets",
+    "scopeMine": "My tickets",
     "columns": {
       "subject": "Subject",
       "customer": "Customer",
+      "category": "Category",
+      "priority": "Priority",
       "status": "Status",
       "assignedTo": "Assigned to",
       "createdAt": "Created"
@@ -59,7 +65,9 @@
       "subject": "Subject",
       "description": "Description",
       "status": "Status",
-      "assignedTo": "Assigned to"
+      "assignedTo": "Assigned to",
+      "category": "Category",
+      "priority": "Priority"
     },
     "assignedTo": {
       "unassigned": "Unassigned"
@@ -68,6 +76,18 @@
       "Open": "Open",
       "InProgress": "In Progress",
       "Closed": "Closed"
+    },
+    "category": {
+      "General": "General",
+      "Billing": "Billing",
+      "Technical": "Technical",
+      "Account": "Account"
+    },
+    "priority": {
+      "Low": "Low",
+      "Normal": "Normal",
+      "High": "High",
+      "Urgent": "Urgent"
     },
     "errors": {
       "loadFailed": "Failed to load tickets.",
@@ -79,7 +99,9 @@
       "status_invalid": "Select a valid status.",
       "customer_not_found": "Select a customer.",
       "ticket_not_found": "Ticket not found.",
-      "assignee_not_found": "Selected assignee is not a valid Agent or Admin."
+      "assignee_not_found": "Selected assignee is not a valid Agent or Admin.",
+      "category_invalid": "Select a valid category.",
+      "priority_invalid": "Select a valid priority."
     },
     "actions": {
       "save": "Save",
@@ -107,11 +129,95 @@
     "nav": {
       "home": "Home",
       "customers": "Customers",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "quickReplies": "Quick Replies"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
       "switchToEnglish": "Switch to English"
+    }
+  },
+  "ticketDetail": {
+    "loadFailed": "Failed to load ticket details.",
+    "notFound": "Ticket not found.",
+    "back": "Back to tickets",
+    "customerContext": "Customer",
+    "viewCustomer": "View customer",
+    "notes": {
+      "heading": "Notes",
+      "empty": "No notes yet.",
+      "placeholder": "Write a note...",
+      "send": "Post note",
+      "quickReplyPlaceholder": "Insert a quick reply...",
+      "saveFailed": "Failed to save note."
+    },
+    "attachments": {
+      "heading": "Attachments",
+      "empty": "No attachments yet.",
+      "upload": "Upload file",
+      "uploading": "Uploading...",
+      "download": "Download",
+      "delete": "Delete",
+      "tooLarge": "File is larger than 5 MB.",
+      "uploadFailed": "Failed to upload attachment.",
+      "downloadFailed": "Failed to download attachment.",
+      "deleteFailed": "Failed to delete attachment."
+    },
+    "tasks": {
+      "heading": "Tasks",
+      "empty": "No tasks yet.",
+      "titlePlaceholder": "Task title",
+      "dueLabel": "Due",
+      "add": "Add task",
+      "saveFailed": "Failed to save task."
+    },
+    "history": {
+      "heading": "History",
+      "empty": "No history yet.",
+      "action": {
+        "ticket": {
+          "create": "Ticket created",
+          "update": "Ticket updated",
+          "delete": "Ticket deleted"
+        }
+      }
+    }
+  },
+  "customerDetail": {
+    "loadFailed": "Failed to load customer details.",
+    "notFound": "Customer not found.",
+    "back": "Back to customers",
+    "tickets": {
+      "heading": "Tickets"
+    },
+    "history": {
+      "heading": "Interaction history",
+      "action": {
+        "customer": {
+          "create": "Customer created",
+          "update": "Customer updated",
+          "delete": "Customer deleted"
+        }
+      }
+    }
+  },
+  "quickReplies": {
+    "title": "Quick Replies",
+    "new": "New quick reply",
+    "empty": "No quick replies yet.",
+    "loadFailed": "Failed to load quick replies.",
+    "saveFailed": "Failed to save quick reply.",
+    "deleteFailed": "Failed to delete quick reply.",
+    "deleteConfirm": "Delete this quick reply? This cannot be undone.",
+    "form": {
+      "title": "Title",
+      "body": "Body",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "titleRequired": "Title is required.",
+      "bodyRequired": "Body is required."
     }
   }
 }

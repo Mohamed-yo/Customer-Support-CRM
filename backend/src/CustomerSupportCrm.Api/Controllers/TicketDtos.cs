@@ -9,7 +9,9 @@ public record TicketListItem(
     string Status,
     DateTime CreatedAtUtc,
     Guid? AssignedToUserId,
-    string? AssignedToDisplayName);
+    string? AssignedToDisplayName,
+    string Category,
+    string Priority);
 
 public class TicketUpsertRequest
 {
@@ -18,6 +20,8 @@ public class TicketUpsertRequest
     public string? Description { get; set; }
     public string Status { get; set; } = "Open";
     public Guid? AssignedToUserId { get; set; }
+    public string Category { get; set; } = "General";
+    public string Priority { get; set; } = "Normal";
 }
 
 public record AssignableUserItem(Guid Id, string DisplayName);

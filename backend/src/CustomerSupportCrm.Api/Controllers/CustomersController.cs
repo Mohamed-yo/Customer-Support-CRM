@@ -131,4 +131,23 @@ public class CustomersController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpGet("{id:guid}/history")]
+    public async Task<IActionResult> History(Guid id, [FromServices] AppDbContext db)
+    {
+        var exists = await db.Customers.AnyAsync(c => c.Id == id);
+        if (!exists) return NotFound(new { error = "customer_not_found" });
+
+        var idStr = id.ToString();
+        var items = await db.AuditLogs
+            .Where(a => a.Action.StartsWith("customer.") && a.Details == idStr)
+            .OrderBy(a => a.TimestampUtc)
+            .Select(a => new HistoryEntry(
+                a.Id, a.Action, a.Outcome, a.ActorUserId,
+                a.ActorUserId == null ? null : db.Users.Where(u => u.Id == a.ActorUserId).Select(u => u.DisplayName).FirstOrDefault(),
+                a.TimestampUtc))
+            .ToListAsync();
+
+        return Ok(items);
+    }
 }

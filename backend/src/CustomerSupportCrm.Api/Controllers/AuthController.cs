@@ -72,7 +72,7 @@ public class AuthController : ControllerBase
             ActorUserId = user.Id,
             ActorEmail = email,
         });
-        return Ok(new LoginResponse(token, user.Email, user.DisplayName, expiresAtUtc, roles));
+        return Ok(new LoginResponse(user.Id, token, user.Email, user.DisplayName, expiresAtUtc, roles));
     }
 
     [HttpGet("me")]

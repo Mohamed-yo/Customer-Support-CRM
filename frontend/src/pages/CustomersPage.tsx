@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   type Customer,
   type CustomerUpsert,
@@ -64,6 +65,7 @@ function validateForm(values: CustomerUpsert): FormErrors {
 
 export default function CustomersPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const isAdmin = useAuthStore((s) => s.hasRole('Admin'));
 
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -223,6 +225,13 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/customers/${customer.id}`)}
+                          className="rounded px-2.5 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800"
+                        >
+                          {t('customers.view')}
+                        </button>
                         <button
                           type="button"
                           onClick={() => openEditForm(customer)}

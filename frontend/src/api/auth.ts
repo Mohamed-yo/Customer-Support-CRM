@@ -1,6 +1,7 @@
 import { httpClient } from './httpClient';
 
 export interface LoginResponse {
+  id: string;
   token: string;
   email: string;
   displayName: string;

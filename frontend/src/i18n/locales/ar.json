@@ -14,6 +14,7 @@
     "title": "العملاء",
     "new": "عميل جديد",
     "edit": "تعديل العميل",
+    "view": "عرض",
     "delete": "حذف",
     "deleteConfirm": "هل تريد حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء.",
     "empty": "لا يوجد عملاء بعد.",
@@ -43,12 +44,17 @@
     "title": "التذاكر",
     "new": "تذكرة جديدة",
     "edit": "تعديل التذكرة",
+    "view": "عرض",
     "delete": "حذف",
     "deleteConfirm": "هل تريد حذف هذه التذكرة؟ لا يمكن التراجع عن هذا الإجراء.",
     "empty": "لا توجد تذاكر بعد.",
+    "scopeAll": "جميع التذاكر",
+    "scopeMine": "تذاكري",
     "columns": {
       "subject": "الموضوع",
       "customer": "العميل",
+      "category": "الفئة",
+      "priority": "الأولوية",
       "status": "الحالة",
       "assignedTo": "معيَّن إلى",
       "createdAt": "تاريخ الإنشاء"
@@ -59,7 +65,9 @@
       "subject": "الموضوع",
       "description": "الوصف",
       "status": "الحالة",
-      "assignedTo": "معيَّن إلى"
+      "assignedTo": "معيَّن إلى",
+      "category": "الفئة",
+      "priority": "الأولوية"
     },
     "assignedTo": {
       "unassigned": "غير معيَّن"
@@ -68,6 +76,18 @@
       "Open": "مفتوحة",
       "InProgress": "قيد المعالجة",
       "Closed": "مغلقة"
+    },
+    "category": {
+      "General": "عام",
+      "Billing": "الفواتير",
+      "Technical": "تقني",
+      "Account": "الحساب"
+    },
+    "priority": {
+      "Low": "منخفضة",
+      "Normal": "عادية",
+      "High": "عالية",
+      "Urgent": "عاجلة"
     },
     "errors": {
       "loadFailed": "تعذر تحميل التذاكر.",
@@ -79,7 +99,9 @@
       "status_invalid": "يرجى اختيار حالة صالحة.",
       "customer_not_found": "يرجى اختيار عميل.",
       "ticket_not_found": "التذكرة غير موجودة.",
-      "assignee_not_found": "الشخص المحدد ليس وكيلاً أو مسؤولاً صالحاً."
+      "assignee_not_found": "الشخص المحدد ليس وكيلاً أو مسؤولاً صالحاً.",
+      "category_invalid": "يرجى اختيار فئة صالحة.",
+      "priority_invalid": "يرجى اختيار أولوية صالحة."
     },
     "actions": {
       "save": "حفظ",
@@ -107,11 +129,95 @@
     "nav": {
       "home": "الرئيسية",
       "customers": "العملاء",
-      "tickets": "التذاكر"
+      "tickets": "التذاكر",
+      "quickReplies": "الردود السريعة"
     },
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",
       "switchToEnglish": "التبديل إلى الإنجليزية"
+    }
+  },
+  "ticketDetail": {
+    "loadFailed": "تعذر تحميل تفاصيل التذكرة.",
+    "notFound": "التذكرة غير موجودة.",
+    "back": "العودة إلى التذاكر",
+    "customerContext": "العميل",
+    "viewCustomer": "عرض العميل",
+    "notes": {
+      "heading": "الملاحظات",
+      "empty": "لا توجد ملاحظات بعد.",
+      "placeholder": "اكتب ملاحظة...",
+      "send": "إضافة الملاحظة",
+      "quickReplyPlaceholder": "إدراج رد سريع...",
+      "saveFailed": "تعذر حفظ الملاحظة."
+    },
+    "attachments": {
+      "heading": "المرفقات",
+      "empty": "لا توجد مرفقات بعد.",
+      "upload": "رفع ملف",
+      "uploading": "جارٍ الرفع...",
+      "download": "تنزيل",
+      "delete": "حذف",
+      "tooLarge": "حجم الملف أكبر من 5 ميغابايت.",
+      "uploadFailed": "تعذر رفع المرفق.",
+      "downloadFailed": "تعذر تنزيل المرفق.",
+      "deleteFailed": "تعذر حذف المرفق."
+    },
+    "tasks": {
+      "heading": "المهام",
+      "empty": "لا توجد مهام بعد.",
+      "titlePlaceholder": "عنوان المهمة",
+      "dueLabel": "الاستحقاق",
+      "add": "إضافة مهمة",
+      "saveFailed": "تعذر حفظ المهمة."
+    },
+    "history": {
+      "heading": "السجل",
+      "empty": "لا يوجد سجل بعد.",
+      "action": {
+        "ticket": {
+          "create": "تم إنشاء التذكرة",
+          "update": "تم تحديث التذكرة",
+          "delete": "تم حذف التذكرة"
+        }
+      }
+    }
+  },
+  "customerDetail": {
+    "loadFailed": "تعذر تحميل تفاصيل العميل.",
+    "notFound": "العميل غير موجود.",
+    "back": "العودة إلى العملاء",
+    "tickets": {
+      "heading": "التذاكر"
+    },
+    "history": {
+      "heading": "سجل التفاعلات",
+      "action": {
+        "customer": {
+          "create": "تم إنشاء العميل",
+          "update": "تم تحديث بيانات العميل",
+          "delete": "تم حذف العميل"
+        }
+      }
+    }
+  },
+  "quickReplies": {
+    "title": "الردود السريعة",
+    "new": "رد سريع جديد",
+    "empty": "لا توجد ردود سريعة بعد.",
+    "loadFailed": "تعذر تحميل الردود السريعة.",
+    "saveFailed": "تعذر حفظ الرد السريع.",
+    "deleteFailed": "تعذر حذف الرد السريع.",
+    "deleteConfirm": "هل تريد حذف هذا الرد السريع؟ لا يمكن التراجع عن هذا الإجراء.",
+    "form": {
+      "title": "العنوان",
+      "body": "النص",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "validation": {
+      "titleRequired": "العنوان مطلوب.",
+      "bodyRequired": "النص مطلوب."
     }
   }
 }

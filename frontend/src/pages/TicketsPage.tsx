@@ -1,9 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
+  TICKET_CATEGORIES,
+  TICKET_PRIORITIES,
   TICKET_STATUSES,
   type AssignableUser,
   type Ticket,
+  type TicketCategory,
+  type TicketPriority,
   type TicketStatus,
   createTicket,
   deleteTicket,
@@ -20,6 +25,8 @@ interface TicketFormValues {
   description: string;
   status: TicketStatus;
   assignedToUserId: string;
+  category: TicketCategory;
+  priority: TicketPriority;
 }
 
 const EMPTY_FORM: TicketFormValues = {
@@ -28,6 +35,15 @@ const EMPTY_FORM: TicketFormValues = {
   description: '',
   status: 'Open',
   assignedToUserId: '',
+  category: 'General',
+  priority: 'Normal',
+};
+
+const PRIORITY_BADGE_CLASSES: Record<TicketPriority, string> = {
+  Low: 'bg-slate-100 text-slate-700',
+  Normal: 'bg-slate-100 text-slate-700',
+  High: 'bg-amber-100 text-amber-800',
+  Urgent: 'bg-red-100 text-red-800',
 };
 
 interface FormErrors {
@@ -64,13 +80,21 @@ function validateForm(values: TicketFormValues, customerIds: Set<string>): FormE
 
 export default function TicketsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const isAdmin = useAuthStore((s) => s.hasRole('Admin'));
+  const currentUserId = useAuthStore((s) => s.user?.id);
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scope, setScope] = useState<'all' | 'mine'>('all');
+
+  const visibleTickets =
+    scope === 'mine' && currentUserId
+      ? tickets.filter((ticket) => ticket.assignedToUserId === currentUserId)
+      : tickets;
 
   const [editing, setEditing] = useState<Ticket | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -129,6 +153,8 @@ export default function TicketsPage() {
       description: ticket.description ?? '',
       status: ticket.status,
       assignedToUserId: ticket.assignedToUserId ?? '',
+      category: ticket.category,
+      priority: ticket.priority,
     });
     resetFormState();
     setFormOpen(true);
@@ -156,6 +182,8 @@ export default function TicketsPage() {
       description: formValues.description.trim() || null,
       status: formValues.status,
       assignedToUserId: formValues.assignedToUserId || null,
+      category: formValues.category,
+      priority: formValues.priority,
     };
 
     setSubmitting(true);
@@ -175,6 +203,8 @@ export default function TicketsPage() {
         'customer_not_found',
         'ticket_not_found',
         'assignee_not_found',
+        'category_invalid',
+        'priority_invalid',
       ];
       setFormError(
         code && knownCodes.includes(code) ? t(`tickets.errors.${code}`) : t('tickets.errors.saveFailed'),
@@ -210,9 +240,30 @@ export default function TicketsPage() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setScope('all')}
+          className={`rounded px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 ${
+            scope === 'all' ? 'bg-slate-800 text-white' : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          {t('tickets.scopeAll')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setScope('mine')}
+          className={`rounded px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 ${
+            scope === 'mine' ? 'bg-slate-800 text-white' : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          {t('tickets.scopeMine')}
+        </button>
+      </div>
+
       {loading ? null : (
         <div className="overflow-x-auto rounded border border-slate-200 bg-white">
-          {tickets.length === 0 ? (
+          {visibleTickets.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-1 px-4 py-16 text-center">
               <p className="text-sm text-slate-500">{t('tickets.empty')}</p>
             </div>
@@ -227,6 +278,12 @@ export default function TicketsPage() {
                     {t('tickets.columns.customer')}
                   </th>
                   <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {t('tickets.columns.category')}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {t('tickets.columns.priority')}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">
                     {t('tickets.columns.status')}
                   </th>
                   <th className="px-4 py-3 text-start text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -239,13 +296,21 @@ export default function TicketsPage() {
                 </tr>
               </thead>
               <tbody>
-                {tickets.map((ticket) => (
+                {visibleTickets.map((ticket) => (
                   <tr
                     key={ticket.id}
                     className="border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50"
                   >
                     <td className="px-4 py-3 text-slate-800">{ticket.subject}</td>
                     <td className="px-4 py-3 text-slate-600">{ticket.customerFullName}</td>
+                    <td className="px-4 py-3 text-slate-600">{t(`tickets.category.${ticket.category}`)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE_CLASSES[ticket.priority]}`}
+                      >
+                        {t(`tickets.priority.${ticket.priority}`)}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-slate-600">{t(`tickets.status.${ticket.status}`)}</td>
                     <td className="px-4 py-3 text-slate-600">
                       {ticket.assignedToDisplayName ?? t('tickets.assignedTo.unassigned')}
@@ -255,6 +320,13 @@ export default function TicketsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/tickets/${ticket.id}`)}
+                          className="rounded px-2.5 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800"
+                        >
+                          {t('tickets.view')}
+                        </button>
                         <button
                           type="button"
                           onClick={() => openEditForm(ticket)}
@@ -369,6 +441,36 @@ export default function TicketsPage() {
                 {TICKET_STATUSES.map((status) => (
                   <option key={status} value={status}>
                     {t(`tickets.status.${status}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <span>{t('tickets.form.category')}</span>
+              <select
+                value={formValues.category}
+                onChange={(e) => setFormValues((v) => ({ ...v, category: e.target.value as TicketCategory }))}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800"
+              >
+                {TICKET_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {t(`tickets.category.${category}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <span>{t('tickets.form.priority')}</span>
+              <select
+                value={formValues.priority}
+                onChange={(e) => setFormValues((v) => ({ ...v, priority: e.target.value as TicketPriority }))}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800"
+              >
+                {TICKET_PRIORITIES.map((priority) => (
+                  <option key={priority} value={priority}>
+                    {t(`tickets.priority.${priority}`)}
                   </option>
                 ))}
               </select>
