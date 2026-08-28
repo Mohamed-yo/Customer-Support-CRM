@@ -135,7 +135,8 @@
       "tickets": "Tickets",
       "quickReplies": "Quick Replies",
       "knowledgeBase": "Knowledge Base",
-      "webhooks": "Webhooks"
+      "webhooks": "Webhooks",
+      "reports": "Reports"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
@@ -392,6 +393,62 @@
     },
     "validation": {
       "targetUrlInvalid": "Enter a valid http(s) URL."
+    }
+  },
+  "reports": {
+    "loadFailed": "Failed to load report data.",
+    "dateRange": {
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "allTime": "All time"
+    },
+    "dashboard": {
+      "title": "Management Dashboard",
+      "sectionsLabel": "Report sections",
+      "ticketVolume": "Ticket volume",
+      "slaCompliance": "SLA compliance (response / resolution)",
+      "escalatedTickets": "Escalated tickets",
+      "averageSatisfaction": "Average satisfaction",
+      "topAgents": "Top agents"
+    },
+    "tickets": {
+      "title": "Ticket Reports",
+      "total": "Total tickets",
+      "byStatus": "By status",
+      "byCategory": "By category",
+      "byPriority": "By priority",
+      "bySource": "By source"
+    },
+    "sla": {
+      "title": "SLA Performance",
+      "responseMetPercent": "Response SLA met",
+      "resolutionMetPercent": "Resolution SLA met",
+      "escalatedCount": "Escalated tickets",
+      "averageResponseMinutes": "Average response time (minutes)",
+      "averageResolutionMinutes": "Average resolution time (minutes)",
+      "responseBreakdown": "Response met / breached",
+      "resolutionBreakdown": "Resolution met / breached"
+    },
+    "agents": {
+      "title": "Agent Performance",
+      "empty": "No agents found.",
+      "columns": {
+        "agent": "Agent",
+        "open": "Open",
+        "inProgress": "In Progress",
+        "closed": "Closed",
+        "averageResolutionMinutes": "Avg. resolution (min)"
+      }
+    },
+    "satisfaction": {
+      "title": "Customer Satisfaction",
+      "averageRating": "Average rating",
+      "feedbackCount": "Feedback received",
+      "responseRate": "Feedback response rate",
+      "distribution": "Rating distribution",
+      "byCategory": "Average rating by category",
+      "byAgent": "Average rating by agent"
     }
   }
 }

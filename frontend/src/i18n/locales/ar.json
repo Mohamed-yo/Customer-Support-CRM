@@ -135,7 +135,8 @@
       "tickets": "التذاكر",
       "quickReplies": "الردود السريعة",
       "knowledgeBase": "قاعدة المعرفة",
-      "webhooks": "الويب هوك"
+      "webhooks": "الويب هوك",
+      "reports": "التقارير"
     },
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",
@@ -392,6 +393,62 @@
     },
     "validation": {
       "targetUrlInvalid": "يرجى إدخال رابط http أو https صالح."
+    }
+  },
+  "reports": {
+    "loadFailed": "تعذر تحميل بيانات التقرير.",
+    "dateRange": {
+      "from": "من",
+      "to": "إلى",
+      "apply": "تطبيق",
+      "allTime": "كل الأوقات"
+    },
+    "dashboard": {
+      "title": "لوحة الإدارة",
+      "sectionsLabel": "أقسام التقارير",
+      "ticketVolume": "حجم التذاكر",
+      "slaCompliance": "الالتزام باتفاقية مستوى الخدمة (الرد / الحل)",
+      "escalatedTickets": "التذاكر المتصاعدة",
+      "averageSatisfaction": "متوسط الرضا",
+      "topAgents": "أفضل الوكلاء"
+    },
+    "tickets": {
+      "title": "تقارير التذاكر",
+      "total": "إجمالي التذاكر",
+      "byStatus": "حسب الحالة",
+      "byCategory": "حسب الفئة",
+      "byPriority": "حسب الأولوية",
+      "bySource": "حسب المصدر"
+    },
+    "sla": {
+      "title": "أداء اتفاقية مستوى الخدمة",
+      "responseMetPercent": "نسبة الالتزام بموعد الرد",
+      "resolutionMetPercent": "نسبة الالتزام بموعد الحل",
+      "escalatedCount": "التذاكر المتصاعدة",
+      "averageResponseMinutes": "متوسط وقت الرد (دقائق)",
+      "averageResolutionMinutes": "متوسط وقت الحل (دقائق)",
+      "responseBreakdown": "الرد: ملتزم / متجاوز",
+      "resolutionBreakdown": "الحل: ملتزم / متجاوز"
+    },
+    "agents": {
+      "title": "أداء الوكلاء",
+      "empty": "لا يوجد وكلاء.",
+      "columns": {
+        "agent": "الوكيل",
+        "open": "مفتوحة",
+        "inProgress": "قيد المعالجة",
+        "closed": "مغلقة",
+        "averageResolutionMinutes": "متوسط الحل (دقيقة)"
+      }
+    },
+    "satisfaction": {
+      "title": "رضا العملاء",
+      "averageRating": "متوسط التقييم",
+      "feedbackCount": "عدد التقييمات المستلمة",
+      "responseRate": "نسبة استجابة التقييم",
+      "distribution": "توزيع التقييمات",
+      "byCategory": "متوسط التقييم حسب الفئة",
+      "byAgent": "متوسط التقييم حسب الوكيل"
     }
   }
 }
