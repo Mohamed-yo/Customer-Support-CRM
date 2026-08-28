@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<TicketAttachment> TicketAttachments => Set<TicketAttachment>();
     public DbSet<TicketTask> TicketTasks => Set<TicketTask>();
     public DbSet<QuickReplyTemplate> QuickReplyTemplates => Set<QuickReplyTemplate>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -150,6 +151,24 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(q => q.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Notification>(e =>
+        {
+            e.HasKey(n => n.Id);
+            e.Property(n => n.Type).IsRequired().HasMaxLength(32);
+            e.Property(n => n.Message).IsRequired().HasMaxLength(512);
+            e.HasIndex(n => new { n.UserId, n.IsRead });
+            e.HasIndex(n => new { n.TicketId, n.Type, n.IsRead });
+            e.HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Cascade: notifications about a ticket are meaningless once the ticket is gone.
+            e.HasOne(n => n.Ticket)
+                .WithMany()
+                .HasForeignKey(n => n.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

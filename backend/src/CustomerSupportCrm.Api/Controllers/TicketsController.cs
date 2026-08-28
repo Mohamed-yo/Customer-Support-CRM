@@ -18,6 +18,102 @@ public class TicketsController : ControllerBase
     private static readonly string[] AllowedCategories = { "General", "Billing", "Technical", "Account" };
     private static readonly string[] AllowedPriorities = { "Low", "Normal", "High", "Urgent" };
 
+    // Fixed this story — an admin-editable configuration UI is Story 14 scope, not this one.
+    private static readonly IReadOnlyDictionary<string, (TimeSpan Response, TimeSpan Resolution)> SlaTargets =
+        new Dictionary<string, (TimeSpan, TimeSpan)>(StringComparer.Ordinal)
+        {
+            ["Urgent"] = (TimeSpan.FromHours(1), TimeSpan.FromHours(4)),
+            ["High"] = (TimeSpan.FromHours(2), TimeSpan.FromHours(8)),
+            ["Normal"] = (TimeSpan.FromHours(4), TimeSpan.FromHours(24)),
+            ["Low"] = (TimeSpan.FromHours(8), TimeSpan.FromHours(48)),
+        };
+
+    private static (DateTime response, DateTime resolution) ComputeDueDates(DateTime createdUtc, string priority)
+    {
+        var target = SlaTargets.TryGetValue(priority, out var t) ? t : SlaTargets["Normal"];
+        return (createdUtc + target.Response, createdUtc + target.Resolution);
+    }
+
+    private static bool ComputeIsEscalated(
+        string status, DateTime responseDueUtc, DateTime resolutionDueUtc,
+        DateTime? firstRespondedAtUtc, DateTime? resolvedAtUtc, DateTime nowUtc)
+    {
+        if (status == "Closed") return false;
+        if (firstRespondedAtUtc is null && nowUtc > responseDueUtc) return true;
+        if (resolvedAtUtc is null && nowUtc > resolutionDueUtc) return true;
+        return false;
+    }
+
+    // Batched: checks all given (ticketId, assigneeId) pairs in one query and inserts
+    // at most one unread "Escalated" notification per ticket, avoiding N+1 round trips
+    // when called from List.
+    private static async Task EnsureEscalationNotificationsAsync(
+        IReadOnlyCollection<(Guid TicketId, Guid AssigneeId)> escalated, AppDbContext db)
+    {
+        if (escalated.Count == 0) return;
+
+        var ticketIds = escalated.Select(x => x.TicketId).ToList();
+        var alreadyNotified = await db.Notifications
+            .Where(n => n.Type == "Escalated" && !n.IsRead && n.TicketId != null && ticketIds.Contains(n.TicketId.Value))
+            .Select(n => n.TicketId!.Value)
+            .ToListAsync();
+        var alreadyNotifiedSet = alreadyNotified.ToHashSet();
+
+        var toAdd = escalated
+            .Where(x => !alreadyNotifiedSet.Contains(x.TicketId))
+            .Select(x => new Notification
+            {
+                UserId = x.AssigneeId,
+                TicketId = x.TicketId,
+                Type = "Escalated",
+                Message = "This ticket has breached its SLA.",
+                IsRead = false,
+            })
+            .ToList();
+
+        if (toAdd.Count > 0)
+        {
+            db.Notifications.AddRange(toAdd);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    private static async Task CreateAssignedNotificationAsync(Guid ticketId, Guid assigneeId, AppDbContext db)
+    {
+        db.Notifications.Add(new Notification
+        {
+            UserId = assigneeId,
+            TicketId = ticketId,
+            Type = "Assigned",
+            Message = "You have been assigned a ticket.",
+            IsRead = false,
+        });
+        await db.SaveChangesAsync();
+    }
+
+    // Least-loaded, not strict round-robin: no persisted rotation-pointer state needed.
+    private static async Task<User?> PickLeastLoadedAssigneeAsync(AppDbContext db)
+    {
+        var candidates = await db.Users
+            .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Agent" || ur.Role!.Name == "Admin"))
+            .Select(u => u.Id)
+            .ToListAsync();
+        if (candidates.Count == 0) return null;
+
+        var loads = await db.Tickets
+            .Where(t => t.AssignedToUserId != null && t.Status != "Closed")
+            .GroupBy(t => t.AssignedToUserId!.Value)
+            .Select(g => new { UserId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.UserId, x => x.Count);
+
+        var winnerId = candidates
+            .OrderBy(id => loads.TryGetValue(id, out var n) ? n : 0)
+            .ThenBy(id => id) // deterministic tiebreak
+            .First();
+
+        return await db.Users.FindAsync(winnerId);
+    }
+
     private Guid? GetActorUserId()
     {
         var sub = User.FindFirst("sub");
@@ -37,17 +133,46 @@ public class TicketsController : ControllerBase
             query = query.Where(t => t.CustomerId == customerId.Value);
         }
 
-        var items = await query
+        var raw = await query
             .OrderByDescending(t => t.CreatedAtUtc)
-            .Select(t => new TicketListItem(
-                t.Id, t.CustomerId, t.Customer!.FullName,
+            .Select(t => new
+            {
+                t.Id, t.CustomerId, CustomerFullName = t.Customer!.FullName,
                 t.Subject, t.Description, t.Status, t.CreatedAtUtc,
                 t.AssignedToUserId,
-                t.AssignedToUser != null ? t.AssignedToUser.DisplayName : null,
-                t.Category, t.Priority))
+                AssignedToDisplayName = t.AssignedToUser != null ? t.AssignedToUser.DisplayName : null,
+                t.Category, t.Priority, t.FirstRespondedAtUtc, t.ResolvedAtUtc,
+            })
             .ToListAsync();
 
+        var items = BuildListItems(raw.Select(t => (
+            t.Id, t.CustomerId, t.CustomerFullName, t.Subject, t.Description, t.Status, t.CreatedAtUtc,
+            t.AssignedToUserId, t.AssignedToDisplayName, t.Category, t.Priority, t.FirstRespondedAtUtc, t.ResolvedAtUtc)));
+
+        await EnsureEscalationNotificationsAsync(
+            items.Where(i => i.IsEscalated && i.AssignedToUserId.HasValue)
+                .Select(i => (i.Id, i.AssignedToUserId!.Value))
+                .ToList(),
+            db);
+
         return Ok(items);
+    }
+
+    private static List<TicketListItem> BuildListItems(
+        IEnumerable<(Guid Id, Guid CustomerId, string CustomerFullName, string Subject, string? Description,
+            string Status, DateTime CreatedAtUtc, Guid? AssignedToUserId, string? AssignedToDisplayName,
+            string Category, string Priority, DateTime? FirstRespondedAtUtc, DateTime? ResolvedAtUtc)> raw)
+    {
+        var now = DateTime.UtcNow;
+        return raw.Select(t =>
+        {
+            var (responseDue, resolutionDue) = ComputeDueDates(t.CreatedAtUtc, t.Priority);
+            var isEscalated = ComputeIsEscalated(t.Status, responseDue, resolutionDue, t.FirstRespondedAtUtc, t.ResolvedAtUtc, now);
+            return new TicketListItem(
+                t.Id, t.CustomerId, t.CustomerFullName, t.Subject, t.Description, t.Status, t.CreatedAtUtc,
+                t.AssignedToUserId, t.AssignedToDisplayName, t.Category, t.Priority,
+                responseDue, resolutionDue, t.FirstRespondedAtUtc, t.ResolvedAtUtc, isEscalated);
+        }).ToList();
     }
 
     [HttpGet("assignable-users")]
@@ -65,17 +190,31 @@ public class TicketsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, [FromServices] AppDbContext db)
     {
-        var item = await db.Tickets
+        var raw = await db.Tickets
             .Where(t => t.Id == id)
-            .Select(t => new TicketListItem(
-                t.Id, t.CustomerId, t.Customer!.FullName,
+            .Select(t => new
+            {
+                t.Id, t.CustomerId, CustomerFullName = t.Customer!.FullName,
                 t.Subject, t.Description, t.Status, t.CreatedAtUtc,
                 t.AssignedToUserId,
-                t.AssignedToUser != null ? t.AssignedToUser.DisplayName : null,
-                t.Category, t.Priority))
+                AssignedToDisplayName = t.AssignedToUser != null ? t.AssignedToUser.DisplayName : null,
+                t.Category, t.Priority, t.FirstRespondedAtUtc, t.ResolvedAtUtc,
+            })
             .SingleOrDefaultAsync();
 
-        if (item is null) return NotFound(new { error = "ticket_not_found" });
+        if (raw is null) return NotFound(new { error = "ticket_not_found" });
+
+        var item = BuildListItems(new[]
+        {
+            (raw.Id, raw.CustomerId, raw.CustomerFullName, raw.Subject, raw.Description, raw.Status, raw.CreatedAtUtc,
+                raw.AssignedToUserId, raw.AssignedToDisplayName, raw.Category, raw.Priority, raw.FirstRespondedAtUtc, raw.ResolvedAtUtc),
+        }).Single();
+
+        if (item.IsEscalated && item.AssignedToUserId.HasValue)
+        {
+            await EnsureEscalationNotificationsAsync(new[] { (item.Id, item.AssignedToUserId.Value) }, db);
+        }
+
         return Ok(item);
     }
 
@@ -120,8 +259,8 @@ public class TicketsController : ControllerBase
         {
             return BadRequest(new { error = "body_required" });
         }
-        var ticket = await db.Tickets.AnyAsync(t => t.Id == id);
-        if (!ticket) return NotFound(new { error = "ticket_not_found" });
+        var ticket = await db.Tickets.SingleOrDefaultAsync(t => t.Id == id);
+        if (ticket is null) return NotFound(new { error = "ticket_not_found" });
 
         var actorId = GetActorUserId();
         if (actorId is null) return Unauthorized();
@@ -133,6 +272,12 @@ public class TicketsController : ControllerBase
             Body = request.Body,
         };
         db.TicketNotes.Add(note);
+
+        if (ticket.FirstRespondedAtUtc is null)
+        {
+            ticket.FirstRespondedAtUtc = DateTime.UtcNow;
+        }
+
         await db.SaveChangesAsync();
 
         var author = await db.Users.Where(u => u.Id == actorId.Value).Select(u => u.DisplayName).SingleAsync();
@@ -333,6 +478,13 @@ public class TicketsController : ControllerBase
             return BadRequest(new { error = "assignee_not_found" });
         }
 
+        // Decision 4: any null AssignedToUserId on Create triggers auto-assignment
+        // (the plain Guid? shape can't distinguish "omitted" from "explicit null").
+        if (assignee is null)
+        {
+            assignee = await PickLeastLoadedAssigneeAsync(db);
+        }
+
         var ticket = new Ticket
         {
             CustomerId = request.CustomerId,
@@ -355,11 +507,18 @@ public class TicketsController : ControllerBase
             Details = ticket.Id.ToString(),
         });
 
+        if (assignee is not null)
+        {
+            await CreateAssignedNotificationAsync(ticket.Id, assignee.Id, db);
+        }
+
+        var (responseDue, resolutionDue) = ComputeDueDates(ticket.CreatedAtUtc, ticket.Priority);
         var item = new TicketListItem(
             ticket.Id, ticket.CustomerId, customer.FullName,
             ticket.Subject, ticket.Description, ticket.Status, ticket.CreatedAtUtc,
             ticket.AssignedToUserId, assignee?.DisplayName,
-            ticket.Category, ticket.Priority);
+            ticket.Category, ticket.Priority,
+            responseDue, resolutionDue, ticket.FirstRespondedAtUtc, ticket.ResolvedAtUtc, IsEscalated: false);
         return CreatedAtAction(nameof(Get), new { id = ticket.Id }, item);
     }
 
@@ -400,6 +559,9 @@ public class TicketsController : ControllerBase
         var ticket = await db.Tickets.SingleOrDefaultAsync(t => t.Id == id);
         if (ticket is null) return NotFound(new { error = "ticket_not_found" });
 
+        var previousStatus = ticket.Status;
+        var previousAssigneeId = ticket.AssignedToUserId;
+
         ticket.CustomerId = request.CustomerId;
         ticket.Subject = request.Subject;
         ticket.Description = request.Description;
@@ -407,6 +569,16 @@ public class TicketsController : ControllerBase
         ticket.Category = request.Category;
         ticket.Priority = request.Priority;
         ticket.AssignedToUserId = assignee?.Id;
+
+        if (ticket.Status == "Closed" && previousStatus != "Closed")
+        {
+            ticket.ResolvedAtUtc = DateTime.UtcNow;
+        }
+        else if (ticket.Status != "Closed" && previousStatus == "Closed")
+        {
+            ticket.ResolvedAtUtc = null;
+        }
+
         await db.SaveChangesAsync();
 
         await audit.WriteAsync(new AuditLog
@@ -417,6 +589,22 @@ public class TicketsController : ControllerBase
             TargetUserId = null,
             Details = ticket.Id.ToString(),
         });
+
+        if (assignee is not null && assignee.Id != previousAssigneeId)
+        {
+            await CreateAssignedNotificationAsync(ticket.Id, assignee.Id, db);
+        }
+
+        if (ticket.AssignedToUserId.HasValue)
+        {
+            var (responseDue, resolutionDue) = ComputeDueDates(ticket.CreatedAtUtc, ticket.Priority);
+            var isEscalated = ComputeIsEscalated(
+                ticket.Status, responseDue, resolutionDue, ticket.FirstRespondedAtUtc, ticket.ResolvedAtUtc, DateTime.UtcNow);
+            if (isEscalated)
+            {
+                await EnsureEscalationNotificationsAsync(new[] { (ticket.Id, ticket.AssignedToUserId.Value) }, db);
+            }
+        }
 
         return NoContent();
     }
