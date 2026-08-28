@@ -1,6 +1,7 @@
 using CustomerSupportCrm.Api.Auditing;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
+using CustomerSupportCrm.Api.Integrations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -456,7 +457,8 @@ public class TicketsController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] TicketUpsertRequest request,
         [FromServices] AppDbContext db,
-        [FromServices] AuditLogger audit)
+        [FromServices] AuditLogger audit,
+        [FromServices] IOutboundWebhookDispatcher webhooks)
     {
         if (string.IsNullOrWhiteSpace(request.Subject))
         {
@@ -501,6 +503,7 @@ public class TicketsController : ControllerBase
             Category = request.Category,
             Priority = request.Priority,
             AssignedToUserId = assignee?.Id,
+            Source = "Manual",
         };
         db.Tickets.Add(ticket);
         await db.SaveChangesAsync();
@@ -519,6 +522,13 @@ public class TicketsController : ControllerBase
             await CreateAssignedNotificationAsync(ticket.Id, assignee.Id, db);
         }
 
+        await webhooks.DispatchAsync("ticket.created", new
+        {
+            id = ticket.Id, subject = ticket.Subject, status = ticket.Status,
+            priority = ticket.Priority, source = ticket.Source, customerId = ticket.CustomerId,
+            createdAtUtc = ticket.CreatedAtUtc,
+        });
+
         var (responseDue, resolutionDue) = ComputeDueDates(ticket.CreatedAtUtc, ticket.Priority);
         var item = new TicketListItem(
             ticket.Id, ticket.CustomerId, customer.FullName,
@@ -534,7 +544,8 @@ public class TicketsController : ControllerBase
         Guid id,
         [FromBody] TicketUpsertRequest request,
         [FromServices] AppDbContext db,
-        [FromServices] AuditLogger audit)
+        [FromServices] AuditLogger audit,
+        [FromServices] IOutboundWebhookDispatcher webhooks)
     {
         if (string.IsNullOrWhiteSpace(request.Subject))
         {
@@ -568,6 +579,7 @@ public class TicketsController : ControllerBase
 
         var previousStatus = ticket.Status;
         var previousAssigneeId = ticket.AssignedToUserId;
+        var transitioningToClosed = request.Status == "Closed" && previousStatus != "Closed";
 
         ticket.CustomerId = request.CustomerId;
         ticket.Subject = request.Subject;
@@ -596,6 +608,16 @@ public class TicketsController : ControllerBase
             TargetUserId = null,
             Details = ticket.Id.ToString(),
         });
+
+        if (transitioningToClosed)
+        {
+            await webhooks.DispatchAsync("ticket.closed", new
+            {
+                id = ticket.Id, subject = ticket.Subject, status = ticket.Status,
+                priority = ticket.Priority, source = ticket.Source, customerId = ticket.CustomerId,
+                createdAtUtc = ticket.CreatedAtUtc,
+            });
+        }
 
         if (assignee is not null && assignee.Id != previousAssigneeId)
         {

@@ -22,6 +22,7 @@ import {
 } from '../api/tickets';
 import { type Customer, getCustomer } from '../api/customers';
 import { listQuickReplies, type QuickReplyTemplate } from '../api/quickReplies';
+import ChatWidget from '../components/ChatWidget';
 
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
@@ -372,6 +373,9 @@ export default function TicketDetailPage() {
               </ul>
             )}
           </section>
+
+          {/* Live chat (Story 12) */}
+          {ticket && <ChatWidget ticketId={ticket.id} side="staff" />}
         </div>
 
         <div className="flex flex-col gap-6">

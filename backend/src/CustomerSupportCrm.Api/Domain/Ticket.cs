@@ -31,4 +31,8 @@ public class Ticket
     // Set when Status transitions into "Closed"; cleared back to null if reopened.
     // Used to compute IsEscalated against ResolutionDueAtUtc.
     public DateTime? ResolvedAtUtc { get; set; }
+
+    // Allowed values: "Manual", "Portal", "WebForm", "Email", "WhatsApp", "SMS", "Chat".
+    // Enforced in controller. Existing rows backfill to "Manual".
+    public string Source { get; set; } = "Manual";
 }

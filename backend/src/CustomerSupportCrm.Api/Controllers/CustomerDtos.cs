@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CustomerSupportCrm.Api.Controllers;
 
-public record CustomerListItem(Guid Id, string FullName, string Email, string? Phone, DateTime CreatedAtUtc);
+public record CustomerListItem(Guid Id, string FullName, string? Email, string? Phone, DateTime CreatedAtUtc);
 
 public class CustomerUpsertRequest
 {

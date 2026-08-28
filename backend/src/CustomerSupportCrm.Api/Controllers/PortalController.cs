@@ -1,6 +1,7 @@
 using CustomerSupportCrm.Api.Auditing;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
+using CustomerSupportCrm.Api.Integrations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,14 +39,18 @@ public class PortalController : ControllerBase
         var customer = await db.Customers.SingleOrDefaultAsync(c => c.Id == customerId);
         if (customer is null) return Unauthorized();
 
-        return Ok(new CustomerMeResponse(customer.Id, customer.Email, customer.FullName));
+        // A customer reachable via a "customer" JWT always registered with an email
+        // (Story 11 Register/Login both require one) - a phone-only, WhatsApp/SMS-created
+        // customer (Story 12) has no PasswordHash and can never obtain this JWT.
+        return Ok(new CustomerMeResponse(customer.Id, customer.Email!, customer.FullName));
     }
 
     [HttpPost("tickets")]
     public async Task<IActionResult> SubmitTicket(
         [FromBody] PortalSubmitTicketRequest request,
         [FromServices] AppDbContext db,
-        [FromServices] AuditLogger audit)
+        [FromServices] AuditLogger audit,
+        [FromServices] IOutboundWebhookDispatcher webhooks)
     {
         if (string.IsNullOrWhiteSpace(request.Subject))
         {
@@ -69,6 +74,7 @@ public class PortalController : ControllerBase
             Category = PortalTicketCategory,
             Priority = priority,
             AssignedToUserId = null,
+            Source = "Portal",
         };
         db.Tickets.Add(ticket);
         await db.SaveChangesAsync();
@@ -91,6 +97,13 @@ public class PortalController : ControllerBase
             await db.SaveChangesAsync();
             await TicketsController.CreateAssignedNotificationAsync(ticket.Id, assignee.Id, db);
         }
+
+        await webhooks.DispatchAsync("ticket.created", new
+        {
+            id = ticket.Id, subject = ticket.Subject, status = ticket.Status,
+            priority = ticket.Priority, source = ticket.Source, customerId = ticket.CustomerId,
+            createdAtUtc = ticket.CreatedAtUtc,
+        });
 
         return CreatedAtAction(nameof(GetMyRequest), new { id = ticket.Id }, ToListItem(ticket, hasFeedback: false));
     }

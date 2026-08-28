@@ -4,7 +4,8 @@ import type { HistoryEntry } from './tickets';
 export interface Customer {
   id: string;
   fullName: string;
-  email: string;
+  // Story 12: null for a customer first identified by phone only (WhatsApp/SMS inbound).
+  email: string | null;
   phone: string | null;
   createdAtUtc: string;
 }

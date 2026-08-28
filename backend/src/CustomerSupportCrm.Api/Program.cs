@@ -2,6 +2,8 @@ using CustomerSupportCrm.Api.Auditing;
 using CustomerSupportCrm.Api.Auth;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
+using CustomerSupportCrm.Api.Hubs;
+using CustomerSupportCrm.Api.Integrations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,27 @@ builder.Services.AddSingleton<JwtTokenService>();
 // SaveChanges interceptor, which would also audit unrelated calls (e.g. the dev seed).
 builder.Services.AddScoped<AuditLogger>();
 
+// Story 12: channel/integration configuration - blank in the committed appsettings.json
+// (see Jwt:SigningKey precedent), real values only in appsettings.Development.json.
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+builder.Services.Configure<ChannelInboundSecrets>(builder.Configuration.GetSection("Channels:InboundSecrets"));
+builder.Services.Configure<WhatsappOutboundOptions>(builder.Configuration.GetSection("Channels:WhatsappOutbound"));
+builder.Services.Configure<SmsOutboundOptions>(builder.Configuration.GetSection("Channels:SmsOutbound"));
+
+builder.Services.AddScoped<EmailSender>();
+builder.Services.AddKeyedScoped<IChannelSender>("Email", (sp, _) => sp.GetRequiredService<EmailSender>());
+builder.Services.AddHttpClient<WhatsappSender>();
+builder.Services.AddKeyedScoped<IChannelSender>("WhatsApp", (sp, _) => sp.GetRequiredService<WhatsappSender>());
+builder.Services.AddHttpClient<SmsSender>();
+builder.Services.AddKeyedScoped<IChannelSender>("SMS", (sp, _) => sp.GetRequiredService<SmsSender>());
+
+builder.Services.AddScoped<IInboundWebhookAuthenticator, SharedSecretAuthenticator>();
+
+builder.Services.AddHttpClient<OutboundWebhookDispatcher>();
+builder.Services.AddScoped<IOutboundWebhookDispatcher>(sp => sp.GetRequiredService<OutboundWebhookDispatcher>());
+
+builder.Services.AddSignalR();
+
 var jwt = builder.Configuration.GetSection("Jwt");
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -39,6 +62,23 @@ builder.Services
             ValidAudience = jwt["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 System.Text.Encoding.UTF8.GetBytes(jwt["SigningKey"] ?? throw new InvalidOperationException("Jwt:SigningKey missing"))),
+        };
+        // Story 12: SignalR's browser client can't always set a custom Authorization
+        // header on the WebSocket handshake, so accept the token via query string for
+        // hub requests only. Purely additive - every other request still authenticates
+        // via the Authorization header exactly as before.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
         };
     });
 builder.Services.AddAuthorization(options =>
@@ -90,5 +130,6 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization();
 
 app.Run();

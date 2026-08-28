@@ -4,5 +4,27 @@
   },
   "Jwt": {
     "SigningKey": "dev-only-signing-key-change-me-in-any-non-dev-env-min-32-chars"
+  },
+  "Smtp": {
+    "Host": "localhost",
+    "Port": 2525,
+    "Username": "",
+    "Password": "",
+    "From": "support@example.com"
+  },
+  "Channels": {
+    "InboundSecrets": {
+      "EmailSecret": "dev-only-email-webhook-secret",
+      "WhatsappSecret": "dev-only-whatsapp-webhook-secret",
+      "SmsSecret": "dev-only-sms-webhook-secret"
+    },
+    "WhatsappOutbound": {
+      "Endpoint": "",
+      "ApiKey": ""
+    },
+    "SmsOutbound": {
+      "Endpoint": "",
+      "ApiKey": ""
+    }
   }
 }

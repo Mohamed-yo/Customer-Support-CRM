@@ -134,7 +134,8 @@
       "customers": "العملاء",
       "tickets": "التذاكر",
       "quickReplies": "الردود السريعة",
-      "knowledgeBase": "قاعدة المعرفة"
+      "knowledgeBase": "قاعدة المعرفة",
+      "webhooks": "الويب هوك"
     },
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",
@@ -337,6 +338,60 @@
       "submit": "إرسال التقييم",
       "onlyOnClosed": "يمكن إرسال التقييم بعد إغلاق هذا الطلب.",
       "saveFailed": "تعذر إرسال التقييم. حاول مرة أخرى."
+    }
+  },
+  "webform": {
+    "title": "إرسال طلب",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف (اختياري)",
+    "subject": "الموضوع",
+    "description": "الوصف",
+    "priority": "الأولوية",
+    "submit": "إرسال الطلب",
+    "successTitle": "تم استلام الطلب",
+    "successBody": "شكرًا لك. رقم المرجع الخاص بك هو",
+    "errors": {
+      "nameRequired": "الاسم الكامل مطلوب.",
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صالح.",
+      "subjectRequired": "الموضوع مطلوب.",
+      "saveFailed": "تعذر إرسال طلبك. حاول مرة أخرى."
+    }
+  },
+  "chat": {
+    "heading": "الدردشة المباشرة",
+    "empty": "لا توجد رسائل بعد. ابدأ المحادثة!",
+    "placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "connected": "متصل",
+    "connecting": "جارٍ الاتصال...",
+    "loadFailed": "تعذر تحميل سجل الدردشة.",
+    "connectFailed": "تعذر الاتصال بالدردشة.",
+    "sendFailed": "تعذر إرسال الرسالة.",
+    "startNew": "بدء دردشة مباشرة",
+    "startFailed": "تعذر بدء الدردشة. حاول مرة أخرى."
+  },
+  "webhooks": {
+    "title": "الويب هوك",
+    "new": "ويب هوك جديد",
+    "edit": "تعديل الويب هوك",
+    "empty": "لا توجد إعدادات ويب هوك بعد.",
+    "loadFailed": "تعذر تحميل الويب هوك.",
+    "saveFailed": "تعذر حفظ الويب هوك.",
+    "deleteFailed": "تعذر حذف الويب هوك.",
+    "deleteConfirm": "هل تريد حذف هذا الويب هوك؟ لا يمكن التراجع عن هذا الإجراء.",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "form": {
+      "targetUrl": "رابط الوجهة",
+      "eventType": "نوع الحدث",
+      "isActive": "نشط",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "validation": {
+      "targetUrlInvalid": "يرجى إدخال رابط http أو https صالح."
     }
   }
 }

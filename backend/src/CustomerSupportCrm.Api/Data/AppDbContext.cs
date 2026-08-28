@@ -23,6 +23,9 @@ public class AppDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
     public DbSet<TicketFeedback> TicketFeedbacks => Set<TicketFeedback>();
+    public DbSet<ChannelMessage> ChannelMessages => Set<ChannelMessage>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<OutboundWebhookSubscription> OutboundWebhookSubscriptions => Set<OutboundWebhookSubscription>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,13 +74,20 @@ public class AppDbContext : DbContext
         {
             e.HasKey(c => c.Id);
             e.Property(c => c.FullName).IsRequired().HasMaxLength(200);
-            e.Property(c => c.Email).IsRequired().HasMaxLength(256);
+            e.Property(c => c.Email).HasMaxLength(256);
             e.Property(c => c.Phone).HasMaxLength(64);
             e.Property(c => c.PasswordHash).HasMaxLength(512);
             // Unique (was non-unique through Story 10): a customer portal login (Story 11)
             // must resolve exactly one Customer row per email. No duplicate emails exist in
             // current data, so this tightening is safe to apply.
-            e.HasIndex(c => c.Email).IsUnique();
+            // Story 12: Email became optional (a phone-only WhatsApp/SMS customer has none),
+            // and SQL Server's plain unique index permits only one NULL - filtered to ignore
+            // NULLs so any number of phone-only customers can coexist.
+            e.HasIndex(c => c.Email).IsUnique().HasFilter("[Email] IS NOT NULL");
+            // Story 12: the identifying key for WhatsApp/SMS-originated customers. Same
+            // NULLs-excluded filter, for the same reason - most existing customers have no
+            // Phone at all.
+            e.HasIndex(c => c.Phone).IsUnique().HasFilter("[Phone] IS NOT NULL");
             e.HasIndex(c => c.CreatedAtUtc);
         });
 
@@ -89,6 +99,7 @@ public class AppDbContext : DbContext
             e.Property(t => t.Status).IsRequired().HasMaxLength(20);
             e.Property(t => t.Category).IsRequired().HasMaxLength(32);
             e.Property(t => t.Priority).IsRequired().HasMaxLength(16);
+            e.Property(t => t.Source).IsRequired().HasMaxLength(20);
             e.HasIndex(t => t.CreatedAtUtc);
             // Restrict (not Cascade): a customer with existing tickets cannot be silently
             // orphaned by deleting the customer. Deleting such a customer fails loudly
@@ -207,6 +218,45 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(f => f.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ChannelMessage>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.Property(m => m.Channel).IsRequired().HasMaxLength(16);
+            e.Property(m => m.Direction).IsRequired().HasMaxLength(16);
+            e.Property(m => m.FromAddress).IsRequired().HasMaxLength(320);
+            e.Property(m => m.ToAddress).HasMaxLength(320);
+            e.Property(m => m.Subject).HasMaxLength(200);
+            e.Property(m => m.Body).IsRequired().HasMaxLength(4000);
+            e.Property(m => m.ExternalMessageId).HasMaxLength(200);
+            e.Property(m => m.SendResult).IsRequired().HasMaxLength(16);
+            e.Property(m => m.SendResultDetail).HasMaxLength(500);
+            e.HasIndex(m => m.TicketId);
+            e.HasOne(m => m.Ticket)
+                .WithMany()
+                .HasForeignKey(m => m.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ChatMessage>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.Property(m => m.SenderType).IsRequired().HasMaxLength(16);
+            e.Property(m => m.Body).IsRequired().HasMaxLength(4000);
+            e.HasIndex(m => new { m.TicketId, m.SentAtUtc });
+            e.HasOne(m => m.Ticket)
+                .WithMany()
+                .HasForeignKey(m => m.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<OutboundWebhookSubscription>(e =>
+        {
+            e.HasKey(s => s.Id);
+            e.Property(s => s.TargetUrl).IsRequired().HasMaxLength(2000);
+            e.Property(s => s.EventType).IsRequired().HasMaxLength(32);
+            e.HasIndex(s => new { s.EventType, s.IsActive });
         });
     }
 }
