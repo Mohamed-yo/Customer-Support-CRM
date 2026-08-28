@@ -132,6 +132,16 @@ export default function TicketsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lock background scroll while the modal is open; restore whatever was there before.
+  useEffect(() => {
+    if (!formOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [formOpen]);
+
   const resetFormState = () => {
     setFormError(null);
     setTouched({ customerId: false, subject: false, description: false });
@@ -362,14 +372,14 @@ export default function TicketsPage() {
 
       {formOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4"
           onClick={closeForm}
         >
           <form
             onSubmit={handleSubmit}
             onClick={(e) => e.stopPropagation()}
             noValidate
-            className="flex w-full max-w-sm flex-col gap-4 rounded bg-white p-6 shadow-sm"
+            className="flex max-h-full w-full max-w-sm flex-col gap-4 overflow-y-auto rounded bg-white p-6 shadow-sm"
           >
             <h2 className="text-lg font-semibold text-slate-800">
               {editing ? t('tickets.edit') : t('tickets.new')}
