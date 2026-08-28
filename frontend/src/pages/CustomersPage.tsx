@@ -110,7 +110,7 @@ export default function CustomersPage() {
 
   const openEditForm = (customer: Customer) => {
     setEditing(customer);
-    setFormValues({ fullName: customer.fullName, email: customer.email, phone: customer.phone ?? '' });
+    setFormValues({ fullName: customer.fullName, email: customer.email ?? '', phone: customer.phone ?? '' });
     setFormError(null);
     setTouched({ email: false, phone: false });
     setAttemptedSubmit(false);

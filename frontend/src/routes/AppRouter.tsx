@@ -7,6 +7,8 @@ import TicketsPage from '../pages/TicketsPage';
 import TicketDetailPage from '../pages/TicketDetailPage';
 import QuickRepliesPage from '../pages/QuickRepliesPage';
 import KnowledgeBasePage from '../pages/KnowledgeBasePage';
+import WebFormPage from '../pages/WebFormPage';
+import WebhooksPage from '../pages/WebhooksPage';
 import PortalLoginPage from '../pages/portal/PortalLoginPage';
 import PortalRegisterPage from '../pages/portal/PortalRegisterPage';
 import SubmitTicketPage from '../pages/portal/SubmitTicketPage';
@@ -23,6 +25,7 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/web-form" element={<WebFormPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
             <Route path="/" element={<HomePage />} />
@@ -32,6 +35,7 @@ export default function AppRouter() {
             <Route path="/tickets/:id" element={<TicketDetailPage />} />
             <Route path="/quick-replies" element={<QuickRepliesPage />} />
             <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
+            <Route path="/webhooks" element={<WebhooksPage />} />
           </Route>
         </Route>
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { listMyRequests, type PortalTicketListItem } from '../../api/portal';
+import { startChat } from '../../api/chat';
 
 export default function MyRequestsPage() {
   const { t } = useTranslation();
@@ -10,6 +11,7 @@ export default function MyRequestsPage() {
   const [tickets, setTickets] = useState<PortalTicketListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [startingChat, setStartingChat] = useState(false);
 
   useEffect(() => {
     listMyRequests()
@@ -18,9 +20,32 @@ export default function MyRequestsPage() {
       .finally(() => setLoading(false));
   }, [t]);
 
+  const handleStartChat = async () => {
+    setStartingChat(true);
+    setError(null);
+    try {
+      const { ticketId } = await startChat();
+      navigate(`/portal/my-requests/${ticketId}`);
+    } catch {
+      setError(t('chat.startFailed'));
+    } finally {
+      setStartingChat(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800">{t('portal.myRequests.title')}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800">{t('portal.myRequests.title')}</h1>
+        <button
+          type="button"
+          onClick={handleStartChat}
+          disabled={startingChat}
+          className="rounded bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700 disabled:opacity-60"
+        >
+          {t('chat.startNew')}
+        </button>
+      </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

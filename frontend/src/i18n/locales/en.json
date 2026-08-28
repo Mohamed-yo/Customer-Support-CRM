@@ -134,7 +134,8 @@
       "customers": "Customers",
       "tickets": "Tickets",
       "quickReplies": "Quick Replies",
-      "knowledgeBase": "Knowledge Base"
+      "knowledgeBase": "Knowledge Base",
+      "webhooks": "Webhooks"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
@@ -337,6 +338,60 @@
       "submit": "Submit feedback",
       "onlyOnClosed": "Feedback can be submitted once this request is closed.",
       "saveFailed": "Failed to submit feedback. Please try again."
+    }
+  },
+  "webform": {
+    "title": "Submit a Request",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone (optional)",
+    "subject": "Subject",
+    "description": "Description",
+    "priority": "Priority",
+    "submit": "Submit request",
+    "successTitle": "Request received",
+    "successBody": "Thank you. Your reference number is",
+    "errors": {
+      "nameRequired": "Full name is required.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "subjectRequired": "Subject is required.",
+      "saveFailed": "Failed to submit your request. Please try again."
+    }
+  },
+  "chat": {
+    "heading": "Live Chat",
+    "empty": "No messages yet. Say hello!",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "loadFailed": "Failed to load chat history.",
+    "connectFailed": "Failed to connect to chat.",
+    "sendFailed": "Failed to send message.",
+    "startNew": "Start Live Chat",
+    "startFailed": "Failed to start chat. Please try again."
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "new": "New webhook",
+    "edit": "Edit webhook",
+    "empty": "No webhooks configured yet.",
+    "loadFailed": "Failed to load webhooks.",
+    "saveFailed": "Failed to save webhook.",
+    "deleteFailed": "Failed to delete webhook.",
+    "deleteConfirm": "Delete this webhook? This cannot be undone.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "form": {
+      "targetUrl": "Target URL",
+      "eventType": "Event type",
+      "isActive": "Active",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "targetUrlInvalid": "Enter a valid http(s) URL."
     }
   }
 }

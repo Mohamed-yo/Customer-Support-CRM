@@ -8,12 +8,15 @@ import NotificationBell from '../NotificationBell';
 
 // Extensibility point: future stories add sections here (Tickets, Customers, Agents,
 // Reports, Settings, ...) without touching the shell's structure.
-const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [
+// `adminOnly` (Story 12): the first role-conditional nav item - filtered below against
+// hasRole('Admin'), not a new permissions abstraction.
+const NAV_ITEMS: Array<{ to: string; labelKey: string; adminOnly?: boolean }> = [
   { to: '/', labelKey: 'shell.nav.home' },
   { to: '/customers', labelKey: 'shell.nav.customers' },
   { to: '/tickets', labelKey: 'shell.nav.tickets' },
   { to: '/quick-replies', labelKey: 'shell.nav.quickReplies' },
   { to: '/knowledge-base', labelKey: 'shell.nav.knowledgeBase' },
+  { to: '/webhooks', labelKey: 'shell.nav.webhooks', adminOnly: true },
 ];
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
@@ -28,6 +31,8 @@ export default function AppShell() {
   const appName = useAppStore((s) => s.appName);
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
+  const isAdmin = useAuthStore((s) => s.hasRole('Admin'));
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -76,7 +81,7 @@ export default function AppShell() {
         <span className="text-lg font-semibold text-slate-800">{appName}</span>
 
         <nav aria-label="Primary" className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink key={item.to} to={item.to} end className={navLinkClassName}>
               {t(item.labelKey)}
             </NavLink>

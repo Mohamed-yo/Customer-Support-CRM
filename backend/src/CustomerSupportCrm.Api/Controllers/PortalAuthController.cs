@@ -48,7 +48,7 @@ public class PortalAuthController : ControllerBase
         }
 
         var email = request.Email.Trim().ToLowerInvariant();
-        var existing = await _db.Customers.SingleOrDefaultAsync(c => c.Email.ToLower() == email);
+        var existing = await _db.Customers.SingleOrDefaultAsync(c => c.Email != null && c.Email.ToLower() == email);
 
         Customer customer;
         if (existing is null)
@@ -87,9 +87,11 @@ public class PortalAuthController : ControllerBase
             ActorEmail = customer.Email,
         });
 
+        // customer.Email is provably non-null here: either just set from request.Email
+        // above, or found via the c.Email != null lookup a few lines up.
         var token = _tokenService.IssueToken(
-            customer.Id, customer.Email, customer.FullName, "customer", Array.Empty<string>(), out var expiresAtUtc);
-        return Ok(new CustomerLoginResponse(customer.Id, token, customer.Email, customer.FullName, expiresAtUtc));
+            customer.Id, customer.Email!, customer.FullName, "customer", Array.Empty<string>(), out var expiresAtUtc);
+        return Ok(new CustomerLoginResponse(customer.Id, token, customer.Email!, customer.FullName, expiresAtUtc));
     }
 
     [HttpPost("login")]
@@ -97,7 +99,7 @@ public class PortalAuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] CustomerLoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var customer = await _db.Customers.SingleOrDefaultAsync(c => c.Email.ToLower() == email);
+        var customer = await _db.Customers.SingleOrDefaultAsync(c => c.Email != null && c.Email.ToLower() == email);
 
         if (customer is null || customer.PasswordHash is null)
         {
@@ -133,9 +135,11 @@ public class PortalAuthController : ControllerBase
             ActorEmail = email,
         });
 
+        // customer.Email is provably non-null here: found via the c.Email != null lookup
+        // above, and PasswordHash (checked above) is only ever set alongside a real email.
         var token = _tokenService.IssueToken(
-            customer.Id, customer.Email, customer.FullName, "customer", Array.Empty<string>(), out var expiresAtUtc);
-        return Ok(new CustomerLoginResponse(customer.Id, token, customer.Email, customer.FullName, expiresAtUtc));
+            customer.Id, customer.Email!, customer.FullName, "customer", Array.Empty<string>(), out var expiresAtUtc);
+        return Ok(new CustomerLoginResponse(customer.Id, token, customer.Email!, customer.FullName, expiresAtUtc));
     }
 
     [HttpGet("me")]
@@ -154,6 +158,8 @@ public class PortalAuthController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(new CustomerMeResponse(customer.Id, customer.Email, customer.FullName));
+        // Reachable only via a "customer" JWT, which Register/Login only ever issue to a
+        // customer with a real Email - a phone-only customer has no PasswordHash to log in.
+        return Ok(new CustomerMeResponse(customer.Id, customer.Email!, customer.FullName));
     }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getMyRequest, submitFeedback, type PortalTicketDetail } from '../../api/portal';
+import ChatWidget from '../../components/ChatWidget';
 
 const RATINGS = [1, 2, 3, 4, 5];
 
@@ -108,6 +109,8 @@ export default function MyRequestDetailPage() {
           </ul>
         )}
       </section>
+
+      <ChatWidget ticketId={ticket.id} side="customer" />
 
       <section className="rounded border border-slate-200 bg-white p-4">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
