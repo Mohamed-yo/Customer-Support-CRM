@@ -9,6 +9,11 @@ import QuickRepliesPage from '../pages/QuickRepliesPage';
 import KnowledgeBasePage from '../pages/KnowledgeBasePage';
 import WebFormPage from '../pages/WebFormPage';
 import WebhooksPage from '../pages/WebhooksPage';
+import ReportsDashboardPage from '../pages/reports/ReportsDashboardPage';
+import TicketReportsPage from '../pages/reports/TicketReportsPage';
+import SlaReportPage from '../pages/reports/SlaReportPage';
+import AgentReportPage from '../pages/reports/AgentReportPage';
+import SatisfactionReportPage from '../pages/reports/SatisfactionReportPage';
 import PortalLoginPage from '../pages/portal/PortalLoginPage';
 import PortalRegisterPage from '../pages/portal/PortalRegisterPage';
 import SubmitTicketPage from '../pages/portal/SubmitTicketPage';
@@ -36,6 +41,11 @@ export default function AppRouter() {
             <Route path="/quick-replies" element={<QuickRepliesPage />} />
             <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
             <Route path="/webhooks" element={<WebhooksPage />} />
+            <Route path="/reports" element={<ReportsDashboardPage />} />
+            <Route path="/reports/tickets" element={<TicketReportsPage />} />
+            <Route path="/reports/sla" element={<SlaReportPage />} />
+            <Route path="/reports/agents" element={<AgentReportPage />} />
+            <Route path="/reports/satisfaction" element={<SatisfactionReportPage />} />
           </Route>
         </Route>
 

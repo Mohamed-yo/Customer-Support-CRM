@@ -15,8 +15,9 @@ public class TicketsController : ControllerBase
 {
     private const long MaxAttachmentSizeBytes = 5 * 1024 * 1024;
 
-    private static readonly string[] AllowedStatuses = { "Open", "InProgress", "Closed" };
-    private static readonly string[] AllowedCategories = { "General", "Billing", "Technical", "Account" };
+    // Internal: also read by ReportsController (Story 13) to label ticket-count breakdowns.
+    internal static readonly string[] AllowedStatuses = { "Open", "InProgress", "Closed" };
+    internal static readonly string[] AllowedCategories = { "General", "Billing", "Technical", "Account" };
     // Internal: also validated against by PortalController for portal-submitted tickets.
     internal static readonly string[] AllowedPriorities = { "Low", "Normal", "High", "Urgent" };
 
@@ -38,7 +39,9 @@ public class TicketsController : ControllerBase
         return (createdUtc + target.Response, createdUtc + target.Resolution);
     }
 
-    private static bool ComputeIsEscalated(
+    // Internal: also called by ReportsController (Story 13) for SLA/escalation reporting -
+    // the escalation condition must never be duplicated outside this one place.
+    internal static bool ComputeIsEscalated(
         string status, DateTime responseDueUtc, DateTime resolutionDueUtc,
         DateTime? firstRespondedAtUtc, DateTime? resolvedAtUtc, DateTime nowUtc)
     {
