@@ -35,6 +35,15 @@ export function createChatConnection(side: ChatSide): HubConnection {
     .withUrl(`${baseURL}/hubs/chat`, {
       accessTokenFactory: () =>
         (side === 'staff' ? useAuthStore.getState().token : useCustomerAuthStore.getState().token) ?? '',
+      // This app never uses cookie-based auth (JWT only, via accessTokenFactory above -
+      // Authorization header for negotiate/long-polling, ?access_token= query string for
+      // the WebSocket handshake per Program.cs's OnMessageReceived). The SignalR client
+      // defaults withCredentials to true, which makes /negotiate a credentialed
+      // cross-origin request; the backend's CORS policy intentionally does not send
+      // Access-Control-Allow-Credentials (it doesn't need to - no cookies are ever sent),
+      // so the browser blocks it. Disabling it here removes the mismatch without loosening
+      // CORS for the rest of the app.
+      withCredentials: false,
     })
     .withAutomaticReconnect()
     .configureLogging(LogLevel.Warning)
