@@ -89,6 +89,9 @@
       "High": "High",
       "Urgent": "Urgent"
     },
+    "escalatedBadge": "Escalated",
+    "responseDue": "Response due",
+    "resolutionDue": "Resolution due",
     "errors": {
       "loadFailed": "Failed to load tickets.",
       "saveFailed": "Failed to save ticket.",
@@ -137,12 +140,32 @@
       "switchToEnglish": "Switch to English"
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "markRead": "Mark as read",
+    "viewTicket": "View ticket",
+    "loadFailed": "Failed to load notifications.",
+    "type": {
+      "Assigned": "You have been assigned a ticket.",
+      "Escalated": "A ticket has breached its SLA."
+    }
+  },
   "ticketDetail": {
     "loadFailed": "Failed to load ticket details.",
     "notFound": "Ticket not found.",
     "back": "Back to tickets",
     "customerContext": "Customer",
     "viewCustomer": "View customer",
+    "sla": {
+      "heading": "SLA",
+      "responseDue": "Response due",
+      "resolutionDue": "Resolution due",
+      "firstResponded": "First responded",
+      "resolved": "Resolved",
+      "notYet": "Not yet",
+      "escalated": "Escalated — SLA breached"
+    },
     "notes": {
       "heading": "Notes",
       "empty": "No notes yet.",

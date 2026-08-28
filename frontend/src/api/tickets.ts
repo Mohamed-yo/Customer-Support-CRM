@@ -21,6 +21,11 @@ export interface Ticket {
   assignedToDisplayName: string | null;
   category: TicketCategory;
   priority: TicketPriority;
+  responseDueAtUtc: string;
+  resolutionDueAtUtc: string;
+  firstRespondedAtUtc: string | null;
+  resolvedAtUtc: string | null;
+  isEscalated: boolean;
 }
 
 export interface TicketUpsert {

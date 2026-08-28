@@ -23,4 +23,12 @@ public class Ticket
     public string Priority { get; set; } = "Normal";
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    // Set once, the first time a TicketNote is posted on this ticket. Never set by a
+    // plain field edit (PUT). Used to compute IsEscalated against ResponseDueAtUtc.
+    public DateTime? FirstRespondedAtUtc { get; set; }
+
+    // Set when Status transitions into "Closed"; cleared back to null if reopened.
+    // Used to compute IsEscalated against ResolutionDueAtUtc.
+    public DateTime? ResolvedAtUtc { get; set; }
 }

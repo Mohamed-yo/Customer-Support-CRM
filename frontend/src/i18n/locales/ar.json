@@ -89,6 +89,9 @@
       "High": "عالية",
       "Urgent": "عاجلة"
     },
+    "escalatedBadge": "متصاعدة",
+    "responseDue": "موعد الرد",
+    "resolutionDue": "موعد الحل",
     "errors": {
       "loadFailed": "تعذر تحميل التذاكر.",
       "saveFailed": "تعذر حفظ التذكرة.",
@@ -137,12 +140,32 @@
       "switchToEnglish": "التبديل إلى الإنجليزية"
     }
   },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات بعد.",
+    "markRead": "تمييز كمقروء",
+    "viewTicket": "عرض التذكرة",
+    "loadFailed": "تعذر تحميل الإشعارات.",
+    "type": {
+      "Assigned": "تم تعيين تذكرة لك.",
+      "Escalated": "تذكرة تجاوزت اتفاقية مستوى الخدمة."
+    }
+  },
   "ticketDetail": {
     "loadFailed": "تعذر تحميل تفاصيل التذكرة.",
     "notFound": "التذكرة غير موجودة.",
     "back": "العودة إلى التذاكر",
     "customerContext": "العميل",
     "viewCustomer": "عرض العميل",
+    "sla": {
+      "heading": "اتفاقية مستوى الخدمة",
+      "responseDue": "موعد الرد",
+      "resolutionDue": "موعد الحل",
+      "firstResponded": "تاريخ أول رد",
+      "resolved": "تاريخ الحل",
+      "notYet": "لم يحدث بعد",
+      "escalated": "متصاعدة — تم تجاوز اتفاقية مستوى الخدمة"
+    },
     "notes": {
       "heading": "الملاحظات",
       "empty": "لا توجد ملاحظات بعد.",

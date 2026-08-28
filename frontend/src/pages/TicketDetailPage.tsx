@@ -241,6 +241,11 @@ export default function TicketDetailPage() {
           <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
             {t(`tickets.priority.${ticket.priority}`)}
           </span>
+          {ticket.isEscalated && (
+            <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
+              {t('tickets.escalatedBadge')}
+            </span>
+          )}
         </div>
         {ticket.description && <p className="text-sm text-slate-600">{ticket.description}</p>}
       </div>
@@ -370,6 +375,42 @@ export default function TicketDetailPage() {
         </div>
 
         <div className="flex flex-col gap-6">
+          {/* SLA */}
+          <section className="rounded border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              {t('ticketDetail.sla.heading')}
+            </h2>
+            <div className="flex flex-col gap-2 text-sm text-slate-700">
+              {ticket.isEscalated && (
+                <p className="rounded bg-red-50 px-2 py-1 text-sm font-medium text-red-700">
+                  {t('ticketDetail.sla.escalated')}
+                </p>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">{t('ticketDetail.sla.responseDue')}</span>
+                <span>{new Date(ticket.responseDueAtUtc).toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">{t('ticketDetail.sla.resolutionDue')}</span>
+                <span>{new Date(ticket.resolutionDueAtUtc).toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">{t('ticketDetail.sla.firstResponded')}</span>
+                <span>
+                  {ticket.firstRespondedAtUtc
+                    ? new Date(ticket.firstRespondedAtUtc).toLocaleString()
+                    : t('ticketDetail.sla.notYet')}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">{t('ticketDetail.sla.resolved')}</span>
+                <span>
+                  {ticket.resolvedAtUtc ? new Date(ticket.resolvedAtUtc).toLocaleString() : t('ticketDetail.sla.notYet')}
+                </span>
+              </div>
+            </div>
+          </section>
+
           {/* Customer context */}
           <section className="rounded border border-slate-200 bg-white p-4">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">

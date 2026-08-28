@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import LanguageToggle from '../LanguageToggle';
+import NotificationBell from '../NotificationBell';
 
 // Extensibility point: future stories add sections here (Tickets, Customers, Agents,
 // Reports, Settings, ...) without touching the shell's structure.
@@ -114,6 +115,7 @@ export default function AppShell() {
           </div>
 
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <LanguageToggle />
             <button
               type="button"

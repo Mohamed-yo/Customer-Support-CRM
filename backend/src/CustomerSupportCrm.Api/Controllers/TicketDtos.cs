@@ -11,7 +11,12 @@ public record TicketListItem(
     Guid? AssignedToUserId,
     string? AssignedToDisplayName,
     string Category,
-    string Priority);
+    string Priority,
+    DateTime ResponseDueAtUtc,
+    DateTime ResolutionDueAtUtc,
+    DateTime? FirstRespondedAtUtc,
+    DateTime? ResolvedAtUtc,
+    bool IsEscalated);
 
 public class TicketUpsertRequest
 {

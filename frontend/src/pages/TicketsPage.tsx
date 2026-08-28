@@ -305,11 +305,18 @@ export default function TicketsPage() {
                     <td className="px-4 py-3 text-slate-600">{ticket.customerFullName}</td>
                     <td className="px-4 py-3 text-slate-600">{t(`tickets.category.${ticket.category}`)}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE_CLASSES[ticket.priority]}`}
-                      >
-                        {t(`tickets.priority.${ticket.priority}`)}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE_CLASSES[ticket.priority]}`}
+                        >
+                          {t(`tickets.priority.${ticket.priority}`)}
+                        </span>
+                        {ticket.isEscalated && (
+                          <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
+                            {t('tickets.escalatedBadge')}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{t(`tickets.status.${ticket.status}`)}</td>
                     <td className="px-4 py-3 text-slate-600">
