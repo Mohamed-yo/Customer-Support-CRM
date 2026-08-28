@@ -7,7 +7,7 @@ namespace CustomerSupportCrm.Api.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-[Authorize]
+[Authorize(Policy = "RequireStaff")]
 public class NotificationsController : ControllerBase
 {
     private const int MaxItems = 50;

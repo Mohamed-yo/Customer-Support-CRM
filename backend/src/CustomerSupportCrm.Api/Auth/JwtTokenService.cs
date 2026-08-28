@@ -15,7 +15,16 @@ public class JwtTokenService
         _configuration = configuration;
     }
 
-    public string IssueToken(User user, IEnumerable<string> roles, out DateTime expiresAtUtc)
+    // "staff" | "customer" - the claim ASP.NET Core authorization policies key off
+    // (see Program.cs "RequireStaff"/"RequireCustomer") to keep the two identity kinds
+    // strictly separated on a single JWT bearer scheme.
+    public string IssueToken(
+        Guid subjectId,
+        string email,
+        string displayName,
+        string identityType,
+        IEnumerable<string> roles,
+        out DateTime expiresAtUtc)
     {
         var jwt = _configuration.GetSection("Jwt");
         var signingKey = jwt["SigningKey"]
@@ -26,9 +35,10 @@ public class JwtTokenService
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new("email", user.Email),
-            new("name", user.DisplayName),
+            new(JwtRegisteredClaimNames.Sub, subjectId.ToString()),
+            new("email", email),
+            new("name", displayName),
+            new("type", identityType),
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
@@ -45,4 +55,7 @@ public class JwtTokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public string IssueToken(User user, IEnumerable<string> roles, out DateTime expiresAtUtc) =>
+        IssueToken(user.Id, user.Email, user.DisplayName, "staff", roles, out expiresAtUtc);
 }

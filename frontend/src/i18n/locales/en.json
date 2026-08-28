@@ -133,7 +133,8 @@
       "home": "Home",
       "customers": "Customers",
       "tickets": "Tickets",
-      "quickReplies": "Quick Replies"
+      "quickReplies": "Quick Replies",
+      "knowledgeBase": "Knowledge Base"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
@@ -241,6 +242,101 @@
     "validation": {
       "titleRequired": "Title is required.",
       "bodyRequired": "Body is required."
+    }
+  },
+  "kb": {
+    "title": "Knowledge Base",
+    "new": "New article",
+    "edit": "Edit article",
+    "empty": "No articles yet.",
+    "loadFailed": "Failed to load articles.",
+    "saveFailed": "Failed to save article.",
+    "deleteFailed": "Failed to delete article.",
+    "deleteConfirm": "Delete this article? This cannot be undone.",
+    "search": "Search",
+    "searchPlaceholder": "Search articles...",
+    "backToList": "Back to articles",
+    "form": {
+      "title": "Title",
+      "body": "Body",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "titleRequired": "Title is required.",
+      "bodyRequired": "Body is required."
+    }
+  },
+  "portal": {
+    "title": "Customer Portal",
+    "nav": {
+      "submitTicket": "Submit a Request",
+      "myRequests": "My Requests",
+      "knowledgeBase": "Knowledge Base"
+    },
+    "login": {
+      "title": "Customer sign in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "registerLink": "Don't have an account? Register",
+      "errors": {
+        "invalidCredentials": "Invalid email or password.",
+        "network": "Could not reach the server. Please try again."
+      }
+    },
+    "register": {
+      "title": "Create your account",
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "loginLink": "Already have an account? Sign in",
+      "errors": {
+        "nameRequired": "Full name is required.",
+        "emailRequired": "Email is required.",
+        "emailInvalid": "Enter a valid email address.",
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordMismatch": "Passwords do not match.",
+        "emailTaken": "An account with this email already has a password. Try signing in instead.",
+        "saveFailed": "Failed to create your account. Please try again."
+      }
+    },
+    "submitTicket": {
+      "title": "Submit a Request",
+      "subject": "Subject",
+      "description": "Description",
+      "priority": "Priority",
+      "submit": "Submit request",
+      "errors": {
+        "subjectRequired": "Subject is required.",
+        "saveFailed": "Failed to submit your request. Please try again."
+      }
+    },
+    "myRequests": {
+      "title": "My Requests",
+      "empty": "You haven't submitted any requests yet.",
+      "loadFailed": "Failed to load your requests."
+    },
+    "myRequestDetail": {
+      "loadFailed": "Failed to load this request.",
+      "notFound": "Request not found.",
+      "back": "Back to my requests",
+      "history": "History",
+      "historyEmpty": "No history yet."
+    },
+    "feedback": {
+      "heading": "Feedback",
+      "rating": "Rating (1-5)",
+      "yourRating": "Your rating",
+      "comment": "Comment (optional)",
+      "submit": "Submit feedback",
+      "onlyOnClosed": "Feedback can be submitted once this request is closed.",
+      "saveFailed": "Failed to submit feedback. Please try again."
     }
   }
 }

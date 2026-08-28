@@ -9,14 +9,15 @@ namespace CustomerSupportCrm.Api.Controllers;
 
 [ApiController]
 [Route("api/tickets")]
-[Authorize]
+[Authorize(Policy = "RequireStaff")]
 public class TicketsController : ControllerBase
 {
     private const long MaxAttachmentSizeBytes = 5 * 1024 * 1024;
 
     private static readonly string[] AllowedStatuses = { "Open", "InProgress", "Closed" };
     private static readonly string[] AllowedCategories = { "General", "Billing", "Technical", "Account" };
-    private static readonly string[] AllowedPriorities = { "Low", "Normal", "High", "Urgent" };
+    // Internal: also validated against by PortalController for portal-submitted tickets.
+    internal static readonly string[] AllowedPriorities = { "Low", "Normal", "High", "Urgent" };
 
     // Fixed this story — an admin-editable configuration UI is Story 14 scope, not this one.
     private static readonly IReadOnlyDictionary<string, (TimeSpan Response, TimeSpan Resolution)> SlaTargets =
@@ -28,7 +29,9 @@ public class TicketsController : ControllerBase
             ["Low"] = (TimeSpan.FromHours(8), TimeSpan.FromHours(48)),
         };
 
-    private static (DateTime response, DateTime resolution) ComputeDueDates(DateTime createdUtc, string priority)
+    // Internal: also called by PortalController so a portal-submitted ticket gets identical
+    // SLA due dates to a staff-created one.
+    internal static (DateTime response, DateTime resolution) ComputeDueDates(DateTime createdUtc, string priority)
     {
         var target = SlaTargets.TryGetValue(priority, out var t) ? t : SlaTargets["Normal"];
         return (createdUtc + target.Response, createdUtc + target.Resolution);
@@ -78,7 +81,8 @@ public class TicketsController : ControllerBase
         }
     }
 
-    private static async Task CreateAssignedNotificationAsync(Guid ticketId, Guid assigneeId, AppDbContext db)
+    // Internal: also called by PortalController when a portal-submitted ticket is auto-assigned.
+    internal static async Task CreateAssignedNotificationAsync(Guid ticketId, Guid assigneeId, AppDbContext db)
     {
         db.Notifications.Add(new Notification
         {
@@ -92,7 +96,10 @@ public class TicketsController : ControllerBase
     }
 
     // Least-loaded, not strict round-robin: no persisted rotation-pointer state needed.
-    private static async Task<User?> PickLeastLoadedAssigneeAsync(AppDbContext db)
+    // Internal: also called by PortalController for portal-submitted tickets (Decision 5 -
+    // every portal ticket is unassigned at submission time, same as a staff-created ticket
+    // with no assignee picked).
+    internal static async Task<User?> PickLeastLoadedAssigneeAsync(AppDbContext db)
     {
         var candidates = await db.Users
             .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Agent" || ur.Role!.Name == "Admin"))
@@ -610,7 +617,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireStaff", Roles = "Admin")]
     public async Task<IActionResult> Delete(
         Guid id,
         [FromServices] AppDbContext db,

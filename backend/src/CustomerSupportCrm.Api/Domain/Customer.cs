@@ -13,6 +13,10 @@ public class Customer
     // Optional. Free-form phone string; no format enforcement this story.
     public string? Phone { get; set; }
 
+    // Null until the customer registers a portal login (Story 11). A customer record
+    // created by staff (Stories 06-10) has no login capability until then.
+    public string? PasswordHash { get; set; }
+
     // Set on create; never mutated. UTC.
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

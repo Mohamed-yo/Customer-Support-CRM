@@ -2,46 +2,38 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/useAppStore';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useCustomerAuthStore } from '../../store/useCustomerAuthStore';
 import LanguageToggle from '../LanguageToggle';
-import NotificationBell from '../NotificationBell';
 
-// Extensibility point: future stories add sections here (Tickets, Customers, Agents,
-// Reports, Settings, ...) without touching the shell's structure.
 const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [
-  { to: '/', labelKey: 'shell.nav.home' },
-  { to: '/customers', labelKey: 'shell.nav.customers' },
-  { to: '/tickets', labelKey: 'shell.nav.tickets' },
-  { to: '/quick-replies', labelKey: 'shell.nav.quickReplies' },
-  { to: '/knowledge-base', labelKey: 'shell.nav.knowledgeBase' },
+  { to: '/portal/submit-ticket', labelKey: 'portal.nav.submitTicket' },
+  { to: '/portal/my-requests', labelKey: 'portal.nav.myRequests' },
+  { to: '/portal/knowledge-base', labelKey: 'portal.nav.knowledgeBase' },
 ];
+
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
   `rounded px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 ${
     isActive ? 'bg-slate-800 text-white' : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200'
   }`;
 
-export default function AppShell() {
+export default function PortalShell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const appName = useAppStore((s) => s.appName);
-  const user = useAuthStore((s) => s.user);
-  const clearSession = useAuthStore((s) => s.clearSession);
+  const customer = useCustomerAuthStore((s) => s.customer);
+  const clearSession = useCustomerAuthStore((s) => s.clearSession);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Close the mobile drawer whenever the route changes. Reset during render
-  // (React's documented pattern for "adjusting state when a prop changes")
-  // instead of in an effect, to avoid an extra post-commit render pass.
   const [lastPathname, setLastPathname] = useState(location.pathname);
   if (location.pathname !== lastPathname) {
     setLastPathname(location.pathname);
     setDrawerOpen(false);
   }
 
-  // Close on Escape and return focus to the toggle button.
   useEffect(() => {
     if (!drawerOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -56,7 +48,7 @@ export default function AppShell() {
 
   const handleLogout = () => {
     clearSession();
-    navigate('/login', { replace: true });
+    navigate('/portal/login', { replace: true });
   };
 
   return (
@@ -74,10 +66,13 @@ export default function AppShell() {
         aria-label={t('shell.sidebar')}
       >
         <span className="text-lg font-semibold text-slate-800">{appName}</span>
+        <span className="-mt-4 text-xs font-medium uppercase tracking-wide text-slate-400">
+          {t('portal.title')}
+        </span>
 
         <nav aria-label="Primary" className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
-            <NavLink key={item.to} to={item.to} end className={navLinkClassName}>
+            <NavLink key={item.to} to={item.to} className={navLinkClassName}>
               {t(item.labelKey)}
             </NavLink>
           ))}
@@ -85,8 +80,8 @@ export default function AppShell() {
 
         <div className="mt-auto flex flex-col gap-4 border-t border-slate-200 pt-4">
           <div className="flex flex-col gap-0.5 text-sm">
-            <span className="font-medium text-slate-800">{user?.displayName}</span>
-            <span className="text-slate-500">{user?.email}</span>
+            <span className="font-medium text-slate-800">{customer?.fullName}</span>
+            <span className="text-slate-500">{customer?.email}</span>
           </div>
 
           <button
@@ -116,7 +111,6 @@ export default function AppShell() {
           </div>
 
           <div className="flex items-center gap-2">
-            <NotificationBell />
             <LanguageToggle />
             <button
               type="button"

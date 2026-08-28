@@ -14,6 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<PasswordHasher<User>>();
+builder.Services.AddSingleton<PasswordHasher<Customer>>();
 builder.Services.AddSingleton<JwtTokenService>();
 // Scoped: AuditLogger takes a scoped AppDbContext. A targeted writer at the two
 // known mutation points (login, role assignment) is used instead of a generic
@@ -40,7 +41,14 @@ builder.Services
                 System.Text.Encoding.UTF8.GetBytes(jwt["SigningKey"] ?? throw new InvalidOperationException("Jwt:SigningKey missing"))),
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // The two identity kinds issued by JwtTokenService ("staff" vs "customer") are kept
+    // strictly separated by this claim - a customer token must never satisfy a staff-only
+    // endpoint and vice versa, regardless of any role claims present.
+    options.AddPolicy("RequireStaff", p => p.RequireAuthenticatedUser().RequireClaim("type", "staff"));
+    options.AddPolicy("RequireCustomer", p => p.RequireAuthenticatedUser().RequireClaim("type", "customer"));
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

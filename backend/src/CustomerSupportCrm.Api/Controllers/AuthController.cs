@@ -76,7 +76,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("me")]
-    [Authorize]
+    [Authorize(Policy = "RequireStaff")]
     public async Task<IActionResult> Me()
     {
         var idClaim = User.FindFirst("sub");
