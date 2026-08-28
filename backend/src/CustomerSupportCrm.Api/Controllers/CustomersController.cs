@@ -9,7 +9,7 @@ namespace CustomerSupportCrm.Api.Controllers;
 
 [ApiController]
 [Route("api/customers")]
-[Authorize]
+[Authorize(Policy = "RequireStaff")]
 public class CustomersController : ControllerBase
 {
     private Guid? GetActorUserId()
@@ -108,7 +108,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireStaff", Roles = "Admin")]
     public async Task<IActionResult> Delete(
         Guid id,
         [FromServices] AppDbContext db,

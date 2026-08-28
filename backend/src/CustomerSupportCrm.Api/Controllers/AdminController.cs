@@ -9,7 +9,7 @@ namespace CustomerSupportCrm.Api.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = "RequireStaff", Roles = "Admin")]
 public class AdminController : ControllerBase
 {
     [HttpGet("ping")]

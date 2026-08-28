@@ -8,7 +8,7 @@ namespace CustomerSupportCrm.Api.Controllers;
 
 [ApiController]
 [Route("api/quick-replies")]
-[Authorize]
+[Authorize(Policy = "RequireStaff")]
 public class QuickRepliesController : ControllerBase
 {
     private Guid? GetActorUserId()

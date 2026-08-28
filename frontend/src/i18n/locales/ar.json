@@ -133,7 +133,8 @@
       "home": "الرئيسية",
       "customers": "العملاء",
       "tickets": "التذاكر",
-      "quickReplies": "الردود السريعة"
+      "quickReplies": "الردود السريعة",
+      "knowledgeBase": "قاعدة المعرفة"
     },
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",
@@ -241,6 +242,101 @@
     "validation": {
       "titleRequired": "العنوان مطلوب.",
       "bodyRequired": "النص مطلوب."
+    }
+  },
+  "kb": {
+    "title": "قاعدة المعرفة",
+    "new": "مقالة جديدة",
+    "edit": "تعديل المقالة",
+    "empty": "لا توجد مقالات بعد.",
+    "loadFailed": "تعذر تحميل المقالات.",
+    "saveFailed": "تعذر حفظ المقالة.",
+    "deleteFailed": "تعذر حذف المقالة.",
+    "deleteConfirm": "هل تريد حذف هذه المقالة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "search": "بحث",
+    "searchPlaceholder": "ابحث في المقالات...",
+    "backToList": "العودة إلى المقالات",
+    "form": {
+      "title": "العنوان",
+      "body": "النص",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "validation": {
+      "titleRequired": "العنوان مطلوب.",
+      "bodyRequired": "النص مطلوب."
+    }
+  },
+  "portal": {
+    "title": "بوابة العملاء",
+    "nav": {
+      "submitTicket": "إرسال طلب",
+      "myRequests": "طلباتي",
+      "knowledgeBase": "قاعدة المعرفة"
+    },
+    "login": {
+      "title": "تسجيل دخول العميل",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "registerLink": "ليس لديك حساب؟ سجّل الآن",
+      "errors": {
+        "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+        "network": "تعذر الوصول إلى الخادم. حاول مرة أخرى."
+      }
+    },
+    "register": {
+      "title": "إنشاء حسابك",
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف (اختياري)",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "submit": "إنشاء الحساب",
+      "submitting": "جارٍ إنشاء الحساب…",
+      "loginLink": "لديك حساب بالفعل؟ سجّل الدخول",
+      "errors": {
+        "nameRequired": "الاسم الكامل مطلوب.",
+        "emailRequired": "البريد الإلكتروني مطلوب.",
+        "emailInvalid": "يرجى إدخال بريد إلكتروني صالح.",
+        "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+        "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+        "emailTaken": "يوجد حساب بهذا البريد الإلكتروني ولديه كلمة مرور بالفعل. جرّب تسجيل الدخول.",
+        "saveFailed": "تعذر إنشاء حسابك. حاول مرة أخرى."
+      }
+    },
+    "submitTicket": {
+      "title": "إرسال طلب",
+      "subject": "الموضوع",
+      "description": "الوصف",
+      "priority": "الأولوية",
+      "submit": "إرسال الطلب",
+      "errors": {
+        "subjectRequired": "الموضوع مطلوب.",
+        "saveFailed": "تعذر إرسال طلبك. حاول مرة أخرى."
+      }
+    },
+    "myRequests": {
+      "title": "طلباتي",
+      "empty": "لم ترسل أي طلبات بعد.",
+      "loadFailed": "تعذر تحميل طلباتك."
+    },
+    "myRequestDetail": {
+      "loadFailed": "تعذر تحميل هذا الطلب.",
+      "notFound": "الطلب غير موجود.",
+      "back": "العودة إلى طلباتي",
+      "history": "السجل",
+      "historyEmpty": "لا يوجد سجل بعد."
+    },
+    "feedback": {
+      "heading": "التقييم",
+      "rating": "التقييم (1-5)",
+      "yourRating": "تقييمك",
+      "comment": "تعليق (اختياري)",
+      "submit": "إرسال التقييم",
+      "onlyOnClosed": "يمكن إرسال التقييم بعد إغلاق هذا الطلب.",
+      "saveFailed": "تعذر إرسال التقييم. حاول مرة أخرى."
     }
   }
 }

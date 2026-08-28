@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
     public DbSet<TicketTask> TicketTasks => Set<TicketTask>();
     public DbSet<QuickReplyTemplate> QuickReplyTemplates => Set<QuickReplyTemplate>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
+    public DbSet<TicketFeedback> TicketFeedbacks => Set<TicketFeedback>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,7 +73,11 @@ public class AppDbContext : DbContext
             e.Property(c => c.FullName).IsRequired().HasMaxLength(200);
             e.Property(c => c.Email).IsRequired().HasMaxLength(256);
             e.Property(c => c.Phone).HasMaxLength(64);
-            e.HasIndex(c => c.Email); // non-unique: same email may appear on distinct customer records (no dedup this story)
+            e.Property(c => c.PasswordHash).HasMaxLength(512);
+            // Unique (was non-unique through Story 10): a customer portal login (Story 11)
+            // must resolve exactly one Customer row per email. No duplicate emails exist in
+            // current data, so this tightening is safe to apply.
+            e.HasIndex(c => c.Email).IsUnique();
             e.HasIndex(c => c.CreatedAtUtc);
         });
 
@@ -169,6 +175,38 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(n => n.TicketId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<KnowledgeArticle>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Title).IsRequired().HasMaxLength(200);
+            e.Property(a => a.Body).IsRequired();
+            e.HasIndex(a => a.Title); // non-unique: search hint only
+            e.HasOne(a => a.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(a => a.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TicketFeedback>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.Property(f => f.Comment).HasMaxLength(2000);
+            // One feedback per ticket.
+            e.HasIndex(f => f.TicketId).IsUnique();
+            e.HasOne(f => f.Ticket)
+                .WithMany()
+                .HasForeignKey(f => f.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(f => f.Customer)
+                .WithMany()
+                .HasForeignKey(f => f.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
