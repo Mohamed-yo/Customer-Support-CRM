@@ -4,19 +4,51 @@ using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
 using CustomerSupportCrm.Api.Hubs;
 using CustomerSupportCrm.Api.Integrations;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Story 24: lets Swagger UI (Development-only, unchanged hosting model) exercise the
+    // X-Api-Key-protected endpoints interactively. Purely additive - no existing JWT
+    // bearer scheme definition existed before this, and none is added now; this only adds
+    // documentation/testability for the new scheme.
+    options.AddSecurityDefinition(ApiKeyAuthenticationHandler.SchemeName, new OpenApiSecurityScheme
+    {
+        Name = "X-Api-Key",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Description = "API key issued via /api/api-keys. Send as the X-Api-Key header.",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = ApiKeyAuthenticationHandler.SchemeName },
+            },
+            Array.Empty<string>()
+        },
+    });
+});
 
 builder.Services.AddSingleton<PasswordHasher<User>>();
 builder.Services.AddSingleton<PasswordHasher<Customer>>();
+// Story 24: hashes API-key secrets the same way passwords are hashed elsewhere in this
+// codebase - PasswordHasher<T>'s generic parameter is just a type marker, not a
+// requirement that T represent a login-capable user.
+builder.Services.AddSingleton<PasswordHasher<ApiKey>>();
 builder.Services.AddSingleton<JwtTokenService>();
 // Scoped: AuditLogger takes a scoped AppDbContext. A targeted writer at the two
 // known mutation points (login, role assignment) is used instead of a generic
@@ -80,7 +112,11 @@ builder.Services
                 return Task.CompletedTask;
             },
         };
-    });
+    })
+    // Story 24: a third, additive scheme for external clients. JWT bearer stays the
+    // default scheme above - every existing endpoint's authentication is unaffected.
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+        ApiKeyAuthenticationHandler.SchemeName, _ => { });
 builder.Services.AddAuthorization(options =>
 {
     // The two identity kinds issued by JwtTokenService ("staff" vs "customer") are kept
@@ -88,6 +124,33 @@ builder.Services.AddAuthorization(options =>
     // endpoint and vice versa, regardless of any role claims present.
     options.AddPolicy("RequireStaff", p => p.RequireAuthenticatedUser().RequireClaim("type", "staff"));
     options.AddPolicy("RequireCustomer", p => p.RequireAuthenticatedUser().RequireClaim("type", "customer"));
+    // Story 24: satisfied only by the ApiKey scheme above - a staff/customer JWT is never
+    // evaluated against this policy (AddAuthenticationSchemes restricts which scheme(s)
+    // this policy accepts), and an API key never carries the "type" claim the two
+    // policies above require, so it can never satisfy them either.
+    options.AddPolicy("RequireExternalClient", p => p
+        .AddAuthenticationSchemes(ApiKeyAuthenticationHandler.SchemeName)
+        .RequireAuthenticatedUser()
+        .RequireClaim("external_client", "true"));
+});
+
+// Story 24: built into the net8.0 shared framework - no new package. Partitioned per API
+// key so one client's usage can never exhaust another's allowance; only applies to
+// endpoints attributed with [EnableRateLimiting("ApiKeyPolicy")] (PublicApiController) -
+// every existing JWT-authenticated endpoint is untouched.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("ApiKeyPolicy", context =>
+    {
+        var keyId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
+        return RateLimitPartition.GetFixedWindowLimiter(keyId, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        });
+    });
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -129,6 +192,7 @@ app.UseHttpsRedirection();
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization();
 
