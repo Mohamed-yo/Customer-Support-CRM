@@ -136,7 +136,8 @@
       "quickReplies": "Quick Replies",
       "knowledgeBase": "Knowledge Base",
       "webhooks": "Webhooks",
-      "reports": "Reports"
+      "reports": "Reports",
+      "apiKeys": "API Keys"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
@@ -449,6 +450,38 @@
       "distribution": "Rating distribution",
       "byCategory": "Average rating by category",
       "byAgent": "Average rating by agent"
+    }
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "description": "Issue and manage API keys for external clients to call the public API.",
+    "new": "Issue key",
+    "empty": "No API keys issued yet.",
+    "loadFailed": "Failed to load API keys.",
+    "saveFailed": "Failed to issue the API key.",
+    "revokeFailed": "Failed to revoke the API key.",
+    "revokeConfirm": "Revoke this API key? Any client using it will immediately lose access. This cannot be undone.",
+    "revoke": "Revoke",
+    "active": "Active",
+    "revoked": "Revoked",
+    "neverUsed": "Never used",
+    "secretWarning": "Copy this key now. For your security, it will not be shown again.",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "dismiss": "Done",
+    "columns": {
+      "label": "Label",
+      "prefix": "Prefix",
+      "created": "Created",
+      "lastUsed": "Last used",
+      "status": "Status"
+    },
+    "form": {
+      "label": "Label",
+      "labelPlaceholder": "e.g. Partner Integration",
+      "labelRequired": "Label is required.",
+      "save": "Issue key",
+      "cancel": "Cancel"
     }
   }
 }

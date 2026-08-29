@@ -9,6 +9,7 @@ import QuickRepliesPage from '../pages/QuickRepliesPage';
 import KnowledgeBasePage from '../pages/KnowledgeBasePage';
 import WebFormPage from '../pages/WebFormPage';
 import WebhooksPage from '../pages/WebhooksPage';
+import ApiKeysPage from '../pages/ApiKeysPage';
 import ReportsDashboardPage from '../pages/reports/ReportsDashboardPage';
 import TicketReportsPage from '../pages/reports/TicketReportsPage';
 import SlaReportPage from '../pages/reports/SlaReportPage';
@@ -41,6 +42,7 @@ export default function AppRouter() {
             <Route path="/quick-replies" element={<QuickRepliesPage />} />
             <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
             <Route path="/webhooks" element={<WebhooksPage />} />
+            <Route path="/api-keys" element={<ApiKeysPage />} />
             <Route path="/reports" element={<ReportsDashboardPage />} />
             <Route path="/reports/tickets" element={<TicketReportsPage />} />
             <Route path="/reports/sla" element={<SlaReportPage />} />

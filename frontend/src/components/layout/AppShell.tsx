@@ -18,6 +18,7 @@ const NAV_ITEMS: Array<{ to: string; labelKey: string; adminOnly?: boolean }> = 
   { to: '/knowledge-base', labelKey: 'shell.nav.knowledgeBase' },
   { to: '/webhooks', labelKey: 'shell.nav.webhooks', adminOnly: true },
   { to: '/reports', labelKey: 'shell.nav.reports', adminOnly: true },
+  { to: '/api-keys', labelKey: 'shell.nav.apiKeys', adminOnly: true },
 ];
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>

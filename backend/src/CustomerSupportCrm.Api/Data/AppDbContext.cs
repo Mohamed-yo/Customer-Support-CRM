@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<ChannelMessage> ChannelMessages => Set<ChannelMessage>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<OutboundWebhookSubscription> OutboundWebhookSubscriptions => Set<OutboundWebhookSubscription>();
+    public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -257,6 +258,21 @@ public class AppDbContext : DbContext
             e.Property(s => s.TargetUrl).IsRequired().HasMaxLength(2000);
             e.Property(s => s.EventType).IsRequired().HasMaxLength(32);
             e.HasIndex(s => new { s.EventType, s.IsActive });
+        });
+
+        modelBuilder.Entity<ApiKey>(e =>
+        {
+            e.HasKey(k => k.Id);
+            e.Property(k => k.Label).IsRequired().HasMaxLength(200);
+            e.Property(k => k.KeyHash).IsRequired();
+            e.Property(k => k.Prefix).IsRequired().HasMaxLength(16);
+            // Non-unique: prefix collisions are possible (statistically negligible) and
+            // handled by verifying every matching candidate's hash, not by relying on
+            // prefix uniqueness.
+            e.HasIndex(k => k.Prefix);
+            // IsActive is a computed, getter-only expression (RevokedAtUtc is null) with
+            // no setter - EF Core excludes it from the model by convention, so no explicit
+            // Ignore() is required.
         });
     }
 }
