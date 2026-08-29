@@ -153,6 +153,31 @@
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
       "switchToEnglish": "Switch to English"
+    },
+    "breadcrumb": {
+      "ariaLabel": "Breadcrumb",
+      "separator": "/",
+      "home": "Home",
+      "customers": "Customers",
+      "customerDetail": "Customer",
+      "tickets": "Tickets",
+      "ticketDetail": "Ticket",
+      "quickReplies": "Quick replies",
+      "knowledgeBase": "Knowledge base",
+      "webhooks": "Webhooks",
+      "apiKeys": "API keys",
+      "reports": "Reports",
+      "reportsTickets": "Ticket reports",
+      "reportsSla": "SLA report",
+      "reportsAgents": "Agent report",
+      "reportsSatisfaction": "Satisfaction report",
+      "adminUsers": "Users",
+      "adminAuditLog": "Audit log",
+      "adminDepartments": "Departments",
+      "adminBranches": "Branches",
+      "adminBranding": "Branding",
+      "adminSlaTargets": "SLA targets",
+      "adminReminderLeadTime": "Reminder lead time"
     }
   },
   "notifications": {

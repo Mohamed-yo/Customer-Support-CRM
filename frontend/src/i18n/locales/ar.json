@@ -153,6 +153,31 @@
     "languageToggle": {
       "switchToArabic": "التبديل إلى العربية",
       "switchToEnglish": "التبديل إلى الإنجليزية"
+    },
+    "breadcrumb": {
+      "ariaLabel": "مسار التنقل",
+      "separator": "/",
+      "home": "الرئيسية",
+      "customers": "العملاء",
+      "customerDetail": "العميل",
+      "tickets": "التذاكر",
+      "ticketDetail": "التذكرة",
+      "quickReplies": "الردود السريعة",
+      "knowledgeBase": "قاعدة المعرفة",
+      "webhooks": "الويب هوك",
+      "apiKeys": "مفاتيح API",
+      "reports": "التقارير",
+      "reportsTickets": "تقارير التذاكر",
+      "reportsSla": "تقرير اتفاقية مستوى الخدمة",
+      "reportsAgents": "تقرير الوكلاء",
+      "reportsSatisfaction": "تقرير الرضا",
+      "adminUsers": "المستخدمون",
+      "adminAuditLog": "سجل التدقيق",
+      "adminDepartments": "الأقسام",
+      "adminBranches": "الفروع",
+      "adminBranding": "الهوية البصرية",
+      "adminSlaTargets": "أهداف اتفاقية مستوى الخدمة",
+      "adminReminderLeadTime": "مهلة تذكير المهام"
     }
   },
   "notifications": {
