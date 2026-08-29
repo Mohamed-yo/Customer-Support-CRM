@@ -14,14 +14,25 @@ export interface WebhookSubscriptionUpsert {
   isActive: boolean;
 }
 
+// Only ever present in the response to create/rotateSigningSecret - never returned again by
+// listWebhookSubscriptions.
+export interface WebhookSubscriptionCreated extends WebhookSubscription {
+  signingSecret: string;
+}
+
 export async function listWebhookSubscriptions(): Promise<WebhookSubscription[]> {
   const { data } = await httpClient.get<WebhookSubscription[]>('/api/webhook-subscriptions');
   return data;
 }
 
-export async function createWebhookSubscription(body: WebhookSubscriptionUpsert): Promise<WebhookSubscription> {
-  const { data } = await httpClient.post<WebhookSubscription>('/api/webhook-subscriptions', body);
+export async function createWebhookSubscription(body: WebhookSubscriptionUpsert): Promise<WebhookSubscriptionCreated> {
+  const { data } = await httpClient.post<WebhookSubscriptionCreated>('/api/webhook-subscriptions', body);
   return data;
+}
+
+export async function rotateWebhookSigningSecret(id: string): Promise<string> {
+  const { data } = await httpClient.post<{ signingSecret: string }>(`/api/webhook-subscriptions/${id}/rotate-secret`);
+  return data.signingSecret;
 }
 
 export async function updateWebhookSubscription(id: string, body: WebhookSubscriptionUpsert): Promise<void> {

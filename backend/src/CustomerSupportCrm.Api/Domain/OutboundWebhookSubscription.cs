@@ -15,4 +15,9 @@ public class OutboundWebhookSubscription
 
     // No FK - mirrors AuditLog's "generic actor id" precedent.
     public Guid CreatedByUserId { get; set; }
+
+    // HMAC-SHA256 signing key for outbound delivery (X-Squad-Signature header). Nullable:
+    // existing rows predate signing and are backfilled by the AddPlatformAdminFoundations
+    // migration; new subscriptions always get one generated at creation time.
+    public string? SigningSecret { get; set; }
 }

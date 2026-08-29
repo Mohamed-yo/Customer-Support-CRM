@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { httpClient } from '../api/httpClient';
-import { useAppStore } from '../store/useAppStore';
+import { useBranding } from '../hooks/useBranding';
 
 type HealthStatus = 'unknown' | 'unreachable' | string;
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const appName = useAppStore((s) => s.appName);
+  const { appName } = useBranding();
   const [health, setHealth] = useState<HealthStatus>('unknown');
 
   useEffect(() => {

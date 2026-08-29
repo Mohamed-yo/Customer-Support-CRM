@@ -1,6 +1,6 @@
 import { httpClient } from './httpClient';
 
-export type NotificationType = 'Assigned' | 'Escalated';
+export type NotificationType = 'Assigned' | 'Escalated' | 'TaskReminder' | 'Mention';
 
 export interface NotificationItem {
   id: string;

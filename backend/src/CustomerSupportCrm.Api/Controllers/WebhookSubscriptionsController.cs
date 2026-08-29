@@ -16,6 +16,13 @@ public class WebhookSubscriptionsController : ControllerBase
 {
     private static readonly string[] AllowedEventTypes = { "ticket.created", "ticket.closed" };
 
+    // 32 bytes, hex-encoded (64 chars) - matches the shape the BackfillWebhookSigningSecrets
+    // migration generates for pre-existing rows.
+    private static string GenerateSigningSecret()
+    {
+        return Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+    }
+
     private Guid? GetActorUserId()
     {
         var sub = User.FindFirst("sub");
@@ -62,6 +69,7 @@ public class WebhookSubscriptionsController : ControllerBase
             EventType = request.EventType,
             IsActive = request.IsActive,
             CreatedByUserId = actorId.Value,
+            SigningSecret = GenerateSigningSecret(),
         };
         db.OutboundWebhookSubscriptions.Add(subscription);
         await db.SaveChangesAsync();
@@ -74,9 +82,30 @@ public class WebhookSubscriptionsController : ControllerBase
             Details = subscription.Id.ToString(),
         });
 
-        var item = new WebhookSubscriptionItem(
-            subscription.Id, subscription.TargetUrl, subscription.EventType, subscription.IsActive, subscription.CreatedAtUtc);
+        var item = new WebhookSubscriptionCreatedItem(
+            subscription.Id, subscription.TargetUrl, subscription.EventType, subscription.IsActive,
+            subscription.CreatedAtUtc, subscription.SigningSecret);
         return CreatedAtAction(nameof(List), item);
+    }
+
+    [HttpPost("{id:guid}/rotate-secret")]
+    public async Task<IActionResult> RotateSecret(Guid id, [FromServices] AppDbContext db, [FromServices] AuditLogger audit)
+    {
+        var subscription = await db.OutboundWebhookSubscriptions.SingleOrDefaultAsync(s => s.Id == id);
+        if (subscription is null) return NotFound(new { error = "subscription_not_found" });
+
+        subscription.SigningSecret = GenerateSigningSecret();
+        await db.SaveChangesAsync();
+
+        await audit.WriteAsync(new AuditLog
+        {
+            Action = "webhook.subscription.rotate_secret",
+            Outcome = "success",
+            ActorUserId = GetActorUserId(),
+            Details = subscription.Id.ToString(),
+        });
+
+        return Ok(new RotateSecretResponse(subscription.SigningSecret));
     }
 
     [HttpPut("{id:guid}")]

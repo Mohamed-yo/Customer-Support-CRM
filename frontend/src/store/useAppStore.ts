@@ -4,8 +4,6 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export type Language = 'en' | 'ar';
 
 interface AppState {
-  appName: string;
-  setAppName: (name: string) => void;
   language: Language;
   setLanguage: (lang: Language) => void;
 }
@@ -13,8 +11,6 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      appName: 'Customer Support CRM',
-      setAppName: (name) => set({ appName: name }),
       language: 'en',
       setLanguage: (language) => set({ language }),
     }),

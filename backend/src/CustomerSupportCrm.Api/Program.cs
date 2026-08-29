@@ -1,5 +1,8 @@
+using CustomerSupportCrm.Api.Ai;
 using CustomerSupportCrm.Api.Auditing;
 using CustomerSupportCrm.Api.Auth;
+using CustomerSupportCrm.Api.BackgroundServices;
+using CustomerSupportCrm.Api.Configuration;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
 using CustomerSupportCrm.Api.Hubs;
@@ -70,6 +73,33 @@ builder.Services.AddHttpClient<SmsSender>();
 builder.Services.AddKeyedScoped<IChannelSender>("SMS", (sp, _) => sp.GetRequiredService<SmsSender>());
 
 builder.Services.AddScoped<IInboundWebhookAuthenticator, SharedSecretAuthenticator>();
+
+// Story 15: admin-editable runtime config (SLA targets, reminder lead time, branding) backed
+// by the RuntimeSetting table, cached briefly via IMemoryCache to keep hot paths (ticket
+// SLA computation) off the database.
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IRuntimeSettings, RuntimeSettingsService>();
+builder.Services.AddScoped<IBrandingService, BrandingService>();
+
+// Story 15 Phase 5: periodic scan for tasks nearing their due date - see
+// TaskReminderScanner's own summary for the exactly-once guarantee.
+builder.Services.AddScoped<ITaskReminderScanner, TaskReminderScanner>();
+builder.Services.AddHostedService<TaskReminderBackgroundService>();
+
+// Story 15 Phase 6: provider-agnostic AI abstraction. "none" (default, blank config) ships
+// with zero real vendor credentials required - every AI feature degrades to NotConfigured.
+// "mock" is a deterministic stand-in for verifying the "configured" acceptance criteria
+// without any real vendor. Neither branch names an actual AI vendor SDK/type.
+builder.Services.Configure<AiOptions>(builder.Configuration.GetSection("Ai"));
+builder.Services.AddScoped<IAiProvider>(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<AiOptions>>().Value;
+    return options.Provider.Trim().ToLowerInvariant() switch
+    {
+        "mock" => new MockAiProvider(),
+        _ => new NullAiProvider(),
+    };
+});
 
 builder.Services.AddHttpClient<OutboundWebhookDispatcher>();
 builder.Services.AddScoped<IOutboundWebhookDispatcher>(sp => sp.GetRequiredService<OutboundWebhookDispatcher>());

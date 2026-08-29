@@ -6,6 +6,7 @@ import {
   createWebhookSubscription,
   deleteWebhookSubscription,
   listWebhookSubscriptions,
+  rotateWebhookSigningSecret,
   updateWebhookSubscription,
 } from '../api/webhooks';
 
@@ -43,6 +44,11 @@ export default function WebhooksPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Held only in memory, only until dismissed - never persisted, never fetched again (the
+  // backend never returns a signing secret in plaintext twice). Mirrors ApiKeysPage.
+  const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const fieldErrors = validateForm(formValues);
 
@@ -107,7 +113,9 @@ export default function WebhooksPage() {
       if (editingId) {
         await updateWebhookSubscription(editingId, formValues);
       } else {
-        await createWebhookSubscription(formValues);
+        const created = await createWebhookSubscription(formValues);
+        setRevealedSecret(created.signingSecret);
+        setCopied(false);
       }
       closeForm();
       loadData();
@@ -128,6 +136,27 @@ export default function WebhooksPage() {
     }
   };
 
+  const handleRotateSecret = async (item: WebhookSubscription) => {
+    if (!window.confirm(t('webhooks.rotateSecretConfirm'))) return;
+    try {
+      const secret = await rotateWebhookSigningSecret(item.id);
+      setRevealedSecret(secret);
+      setCopied(false);
+    } catch {
+      setError(t('webhooks.rotateSecretFailed'));
+    }
+  };
+
+  const handleCopySecret = async () => {
+    if (!revealedSecret) return;
+    try {
+      await navigator.clipboard.writeText(revealedSecret);
+      setCopied(true);
+    } catch {
+      // Clipboard API unavailable/denied - the secret remains visible for manual copy.
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
@@ -140,6 +169,31 @@ export default function WebhooksPage() {
           {t('webhooks.new')}
         </button>
       </div>
+
+      {revealedSecret && (
+        <div className="rounded border border-amber-300 bg-amber-50 p-4">
+          <p className="text-sm font-semibold text-amber-900">{t('webhooks.secretWarning')}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <code className="break-all rounded border border-amber-200 bg-white px-3 py-2 text-sm text-slate-800">
+              {revealedSecret}
+            </code>
+            <button
+              type="button"
+              onClick={handleCopySecret}
+              className="rounded border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100"
+            >
+              {copied ? t('webhooks.copied') : t('webhooks.copy')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setRevealedSecret(null)}
+              className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            >
+              {t('webhooks.dismiss')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -175,6 +229,13 @@ export default function WebhooksPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleRotateSecret(s)}
+                          className="rounded px-2.5 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                        >
+                          {t('webhooks.rotateSecret')}
+                        </button>
                         <button
                           type="button"
                           onClick={() => openEditForm(s)}

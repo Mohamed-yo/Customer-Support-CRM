@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAppStore } from '../../store/useAppStore';
 import { useCustomerAuthStore } from '../../store/useCustomerAuthStore';
+import { useBranding } from '../../hooks/useBranding';
 import LanguageToggle from '../LanguageToggle';
+import AiChatWidget from '../AiChatWidget';
 
 const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [
   { to: '/portal/submit-ticket', labelKey: 'portal.nav.submitTicket' },
@@ -14,14 +15,14 @@ const NAV_ITEMS: Array<{ to: string; labelKey: string }> = [
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
   `rounded px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 ${
-    isActive ? 'bg-slate-800 text-white' : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200'
+    isActive ? 'bg-[var(--brand-primary,#1e293b)] text-white' : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200'
   }`;
 
 export default function PortalShell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const appName = useAppStore((s) => s.appName);
+  const { appName, logoDataUrl, primaryColorHex } = useBranding();
   const customer = useCustomerAuthStore((s) => s.customer);
   const clearSession = useCustomerAuthStore((s) => s.clearSession);
 
@@ -52,7 +53,10 @@ export default function PortalShell() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div
+      className="flex min-h-screen bg-slate-50"
+      style={primaryColorHex ? ({ '--brand-primary': primaryColorHex } as CSSProperties) : undefined}
+    >
       {drawerOpen && (
         <div
           className="fixed inset-0 z-30 bg-slate-900/50 lg:hidden"
@@ -65,7 +69,10 @@ export default function PortalShell() {
         className={`${drawerOpen ? 'flex' : 'hidden'} lg:flex fixed inset-y-0 start-0 z-40 w-64 flex-col gap-6 bg-white px-4 py-6 shadow-sm lg:static`}
         aria-label={t('shell.sidebar')}
       >
-        <span className="text-lg font-semibold text-slate-800">{appName}</span>
+        <div className="flex items-center gap-2">
+          {logoDataUrl && <img src={logoDataUrl} alt="" className="h-7 w-7 rounded object-contain" />}
+          <span className="text-lg font-semibold text-slate-800">{appName}</span>
+        </div>
         <span className="-mt-4 text-xs font-medium uppercase tracking-wide text-slate-400">
           {t('portal.title')}
         </span>
@@ -130,6 +137,8 @@ export default function PortalShell() {
           </div>
         </main>
       </div>
+
+      <AiChatWidget />
     </div>
   );
 }

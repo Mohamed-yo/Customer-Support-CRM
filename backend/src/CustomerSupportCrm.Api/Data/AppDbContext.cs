@@ -27,6 +27,9 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<OutboundWebhookSubscription> OutboundWebhookSubscriptions => Set<OutboundWebhookSubscription>();
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<RuntimeSetting> RuntimeSettings => Set<RuntimeSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,7 +41,20 @@ public class AppDbContext : DbContext
             e.Property(u => u.Email).IsRequired().HasMaxLength(256);
             e.Property(u => u.DisplayName).IsRequired().HasMaxLength(200);
             e.Property(u => u.PasswordHash).IsRequired().HasMaxLength(512);
+            // Existing rows predate this column; they must backfill to true (active), not the
+            // CLR bool default of false, or every current staff user is locked out at login.
+            e.Property(u => u.IsActive).HasDefaultValue(true);
             e.HasIndex(u => u.Email).IsUnique();
+            // SetNull: a department/branch being retired should not block or cascade-delete
+            // the staff members that reference it.
+            e.HasOne(u => u.Department)
+                .WithMany()
+                .HasForeignKey(u => u.DepartmentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(u => u.Branch)
+                .WithMany()
+                .HasForeignKey(u => u.BranchId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Role>(e =>
@@ -115,6 +131,15 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(t => t.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+            // SetNull: same rationale as User's Department/Branch above.
+            e.HasOne(t => t.Department)
+                .WithMany()
+                .HasForeignKey(t => t.DepartmentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(t => t.Branch)
+                .WithMany()
+                .HasForeignKey(t => t.BranchId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<TicketNote>(e =>
@@ -178,6 +203,11 @@ public class AppDbContext : DbContext
             e.Property(n => n.Message).IsRequired().HasMaxLength(512);
             e.HasIndex(n => new { n.UserId, n.IsRead });
             e.HasIndex(n => new { n.TicketId, n.Type, n.IsRead });
+            // Story 15: DB-enforced exactly-once per task - the reminder scanner runs
+            // repeatedly and must never rely solely on application logic to avoid duplicates.
+            e.HasIndex(n => n.SourceTaskId)
+                .IsUnique()
+                .HasFilter("[Type] = 'TaskReminder' AND [SourceTaskId] IS NOT NULL");
             e.HasOne(n => n.User)
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
@@ -257,6 +287,7 @@ public class AppDbContext : DbContext
             e.HasKey(s => s.Id);
             e.Property(s => s.TargetUrl).IsRequired().HasMaxLength(2000);
             e.Property(s => s.EventType).IsRequired().HasMaxLength(32);
+            e.Property(s => s.SigningSecret).HasMaxLength(128);
             e.HasIndex(s => new { s.EventType, s.IsActive });
         });
 
@@ -273,6 +304,27 @@ public class AppDbContext : DbContext
             // IsActive is a computed, getter-only expression (RevokedAtUtc is null) with
             // no setter - EF Core excludes it from the model by convention, so no explicit
             // Ignore() is required.
+        });
+
+        modelBuilder.Entity<Department>(e =>
+        {
+            e.HasKey(d => d.Id);
+            e.Property(d => d.Name).IsRequired().HasMaxLength(200);
+            e.HasIndex(d => d.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<Branch>(e =>
+        {
+            e.HasKey(b => b.Id);
+            e.Property(b => b.Name).IsRequired().HasMaxLength(200);
+            e.HasIndex(b => b.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<RuntimeSetting>(e =>
+        {
+            e.HasKey(r => r.Key);
+            e.Property(r => r.Key).HasMaxLength(64);
+            e.Property(r => r.ValueJson).IsRequired();
         });
     }
 }

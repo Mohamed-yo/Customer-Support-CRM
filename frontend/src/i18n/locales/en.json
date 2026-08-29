@@ -67,7 +67,9 @@
       "status": "Status",
       "assignedTo": "Assigned to",
       "category": "Category",
-      "priority": "Priority"
+      "priority": "Priority",
+      "department": "Department",
+      "branch": "Branch"
     },
     "assignedTo": {
       "unassigned": "Unassigned"
@@ -104,7 +106,9 @@
       "ticket_not_found": "Ticket not found.",
       "assignee_not_found": "Selected assignee is not a valid Agent or Admin.",
       "category_invalid": "Select a valid category.",
-      "priority_invalid": "Select a valid priority."
+      "priority_invalid": "Select a valid priority.",
+      "department_not_found": "Select a valid department.",
+      "branch_not_found": "Select a valid branch."
     },
     "actions": {
       "save": "Save",
@@ -137,7 +141,14 @@
       "knowledgeBase": "Knowledge Base",
       "webhooks": "Webhooks",
       "reports": "Reports",
-      "apiKeys": "API Keys"
+      "apiKeys": "API Keys",
+      "adminUsers": "Staff Users",
+      "adminAuditLog": "Audit Log",
+      "departments": "Departments",
+      "branches": "Branches",
+      "branding": "Branding",
+      "slaTargets": "SLA Targets",
+      "reminderLeadTime": "Reminder Lead Time"
     },
     "languageToggle": {
       "switchToArabic": "Switch to Arabic",
@@ -152,7 +163,9 @@
     "loadFailed": "Failed to load notifications.",
     "type": {
       "Assigned": "You have been assigned a ticket.",
-      "Escalated": "A ticket has breached its SLA."
+      "Escalated": "A ticket has breached its SLA.",
+      "TaskReminder": "A task is due soon.",
+      "Mention": "You were mentioned in a ticket note."
     }
   },
   "ticketDetail": {
@@ -385,6 +398,13 @@
     "deleteConfirm": "Delete this webhook? This cannot be undone.",
     "active": "Active",
     "inactive": "Inactive",
+    "rotateSecret": "Rotate secret",
+    "rotateSecretConfirm": "Rotate the signing secret? Deliveries signed with the old secret will no longer verify.",
+    "rotateSecretFailed": "Failed to rotate the signing secret.",
+    "secretWarning": "Copy this signing secret now. For your security, it will not be shown again.",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "dismiss": "Done",
     "form": {
       "targetUrl": "Target URL",
       "eventType": "Event type",
@@ -483,5 +503,164 @@
       "save": "Issue key",
       "cancel": "Cancel"
     }
+  },
+  "admin": {
+    "users": {
+      "title": "Staff Users",
+      "new": "New user",
+      "search": "Search",
+      "searchPlaceholder": "Search by name or email",
+      "empty": "No staff users found.",
+      "loadFailed": "Failed to load staff users.",
+      "actionFailed": "That action failed. Please try again.",
+      "active": "Active",
+      "inactive": "Deactivated",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "deactivateConfirm": "Deactivate {{name}}? They will no longer be able to log in.",
+      "cannotRemoveOwnAdmin": "You cannot remove your own Admin role.",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "roles": "Roles",
+        "status": "Status"
+      },
+      "form": {
+        "email": "Email",
+        "displayName": "Display name",
+        "password": "Temporary password",
+        "passwordHint": "At least 8 characters. The user can change it after logging in.",
+        "invalid": "Please fill in a valid email, display name, and an 8+ character password.",
+        "emailInUse": "That email is already in use.",
+        "saveFailed": "Failed to create the user.",
+        "save": "Create user",
+        "cancel": "Cancel"
+      }
+    },
+    "audit": {
+      "title": "Audit Log",
+      "empty": "No audit log entries found.",
+      "loadFailed": "Failed to load the audit log.",
+      "filters": {
+        "action": "Action",
+        "actionPlaceholder": "e.g. admin.user.create",
+        "from": "From",
+        "to": "To",
+        "apply": "Apply filters"
+      },
+      "columns": {
+        "timestamp": "Timestamp",
+        "action": "Action",
+        "outcome": "Outcome",
+        "actor": "Actor",
+        "details": "Details"
+      }
+    },
+    "runtime": {
+      "saveFailed": "Failed to save this setting.",
+      "loadFailed": "Failed to load this setting.",
+      "saved": "Saved."
+    },
+    "branding": {
+      "title": "Branding",
+      "appName": "Application name",
+      "logo": "Logo",
+      "logoHint": "PNG or JPEG, up to 256KB.",
+      "logoTooLarge": "The logo must be 256KB or smaller.",
+      "remove": "Remove logo",
+      "primaryColor": "Primary color",
+      "resetColor": "Reset to default",
+      "primaryColorInvalid": "Enter a valid color.",
+      "save": "Save",
+      "saveFailed": "Failed to save branding.",
+      "loadFailed": "Failed to load branding."
+    },
+    "slaTargets": {
+      "title": "SLA Targets",
+      "description": "Response and resolution time targets per ticket priority, in hours.",
+      "columns": {
+        "priority": "Priority",
+        "response": "Response (hrs)",
+        "resolution": "Resolution (hrs)"
+      },
+      "save": "Save",
+      "saveFailed": "Failed to save SLA targets.",
+      "loadFailed": "Failed to load SLA targets.",
+      "invalid": "Every priority needs a positive number of hours for both response and resolution."
+    },
+    "reminderLeadTime": {
+      "title": "Task Reminder Lead Time",
+      "description": "How many hours before a task's due date agents are reminded.",
+      "hours": "Hours",
+      "save": "Save",
+      "saveFailed": "Failed to save the reminder lead time.",
+      "loadFailed": "Failed to load the reminder lead time.",
+      "invalid": "Enter a positive number of hours."
+    }
+  },
+  "departments": {
+    "title": "Departments",
+    "new": "New department",
+    "empty": "No departments yet.",
+    "loadFailed": "Failed to load departments.",
+    "saveFailed": "Failed to save the department.",
+    "nameRequired": "Name is required.",
+    "nameInUse": "That name is already in use.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "actionFailed": "That action failed. Please try again.",
+    "columns": {
+      "name": "Name",
+      "status": "Status"
+    },
+    "form": {
+      "name": "Name",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
+  "branches": {
+    "title": "Branches",
+    "new": "New branch",
+    "empty": "No branches yet.",
+    "loadFailed": "Failed to load branches.",
+    "saveFailed": "Failed to save the branch.",
+    "nameRequired": "Name is required.",
+    "nameInUse": "That name is already in use.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "actionFailed": "That action failed. Please try again.",
+    "columns": {
+      "name": "Name",
+      "status": "Status"
+    },
+    "form": {
+      "name": "Name",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
+  "ai": {
+    "notConfigured": "AI features are not configured in this environment.",
+    "error": "The AI request failed. Please try again.",
+    "summarize": "Summarize",
+    "suggestReply": "Suggest reply",
+    "suggestCategory": "Suggest category",
+    "suggestKbArticles": "Suggest KB articles",
+    "apply": "Apply",
+    "dismiss": "Dismiss",
+    "loading": "Thinking…",
+    "chat": {
+      "title": "AI Assistant",
+      "placeholder": "Ask a question…",
+      "send": "Send"
+    }
+  },
+  "mentions": {
+    "placeholder": "Type @ to mention a teammate"
   }
 }
