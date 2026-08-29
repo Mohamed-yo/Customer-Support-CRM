@@ -63,6 +63,22 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = "invalid_credentials" });
         }
 
+        // Checked only after a correct password, so a wrong-password attempt against a
+        // deactivated account still returns the generic invalid_credentials above - this
+        // stable, distinct code is only ever seen by someone who already knows the password.
+        if (!user.IsActive)
+        {
+            await _audit.WriteAsync(new AuditLog
+            {
+                Action = "auth.login",
+                Outcome = "failure",
+                ActorUserId = user.Id,
+                ActorEmail = email,
+                Details = "account_deactivated",
+            });
+            return Unauthorized(new { error = "account_deactivated" });
+        }
+
         var roles = user.UserRoles.Select(ur => ur.Role.Name).OrderBy(n => n).ToList();
         var token = _tokenService.IssueToken(user, roles, out var expiresAtUtc);
         await _audit.WriteAsync(new AuditLog

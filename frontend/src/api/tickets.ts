@@ -26,6 +26,10 @@ export interface Ticket {
   firstRespondedAtUtc: string | null;
   resolvedAtUtc: string | null;
   isEscalated: boolean;
+  departmentId: string | null;
+  departmentName: string | null;
+  branchId: string | null;
+  branchName: string | null;
 }
 
 export interface TicketUpsert {
@@ -36,11 +40,29 @@ export interface TicketUpsert {
   assignedToUserId?: string | null;
   category: TicketCategory;
   priority: TicketPriority;
+  departmentId?: string | null;
+  branchId?: string | null;
 }
 
 export interface AssignableUser {
   id: string;
   displayName: string;
+}
+
+export interface MentionableUser {
+  id: string;
+  displayName: string;
+  email: string;
+}
+
+export interface DepartmentOption {
+  id: string;
+  name: string;
+}
+
+export interface BranchOption {
+  id: string;
+  name: string;
 }
 
 export interface HistoryEntry {
@@ -117,6 +139,23 @@ export async function listAssignableUsers(): Promise<AssignableUser[]> {
   return data;
 }
 
+export async function listMentionableUsers(search?: string): Promise<MentionableUser[]> {
+  const { data } = await httpClient.get<MentionableUser[]>('/api/tickets/mentionable-users', {
+    params: search ? { search } : undefined,
+  });
+  return data;
+}
+
+export async function listDepartmentOptions(): Promise<DepartmentOption[]> {
+  const { data } = await httpClient.get<DepartmentOption[]>('/api/tickets/department-options');
+  return data;
+}
+
+export async function listBranchOptions(): Promise<BranchOption[]> {
+  const { data } = await httpClient.get<BranchOption[]>('/api/tickets/branch-options');
+  return data;
+}
+
 export async function getTicketHistory(id: string): Promise<HistoryEntry[]> {
   const { data } = await httpClient.get<HistoryEntry[]>(`/api/tickets/${id}/history`);
   return data;
@@ -127,8 +166,11 @@ export async function listTicketNotes(ticketId: string): Promise<TicketNote[]> {
   return data;
 }
 
-export async function createTicketNote(ticketId: string, body: string): Promise<TicketNote> {
-  const { data } = await httpClient.post<TicketNote>(`/api/tickets/${ticketId}/notes`, { body });
+export async function createTicketNote(ticketId: string, body: string, mentionedUserIds?: string[]): Promise<TicketNote> {
+  const { data } = await httpClient.post<TicketNote>(`/api/tickets/${ticketId}/notes`, {
+    body,
+    mentionedUserIds: mentionedUserIds ?? [],
+  });
   return data;
 }
 

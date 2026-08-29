@@ -1,3 +1,4 @@
+using CustomerSupportCrm.Api.Configuration;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -57,11 +58,11 @@ public class ReportsController : ControllerBase
 
     [HttpGet("sla")]
     public async Task<IActionResult> GetSlaPerformance(
-        [FromServices] AppDbContext db, [FromQuery] ReportDateRangeQuery range)
+        [FromServices] AppDbContext db, [FromServices] IRuntimeSettings runtimeSettings, [FromQuery] ReportDateRangeQuery range)
     {
         if (RangeInvalid(range)) return BadRequest(new { error = "date_range_invalid" });
 
-        var report = await BuildSlaReportAsync(db, range);
+        var report = await BuildSlaReportAsync(db, runtimeSettings, range);
         return Ok(report);
     }
 
@@ -87,12 +88,12 @@ public class ReportsController : ControllerBase
 
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard(
-        [FromServices] AppDbContext db, [FromQuery] ReportDateRangeQuery range)
+        [FromServices] AppDbContext db, [FromServices] IRuntimeSettings runtimeSettings, [FromQuery] ReportDateRangeQuery range)
     {
         if (RangeInvalid(range)) return BadRequest(new { error = "date_range_invalid" });
 
         var tickets = await BuildTicketCountsAsync(db, range);
-        var sla = await BuildSlaReportAsync(db, range);
+        var sla = await BuildSlaReportAsync(db, runtimeSettings, range);
         var agents = await BuildAgentReportAsync(db, range);
         var satisfaction = await BuildSatisfactionReportAsync(db, range);
 
@@ -132,7 +133,8 @@ public class ReportsController : ControllerBase
             sourceCounts.ToDictionary(s => s.Key, s => s.Count));
     }
 
-    private async Task<SlaPerformanceReport> BuildSlaReportAsync(AppDbContext db, ReportDateRangeQuery range)
+    private async Task<SlaPerformanceReport> BuildSlaReportAsync(
+        AppDbContext db, IRuntimeSettings runtimeSettings, ReportDateRangeQuery range)
     {
         var nowUtc = DateTime.UtcNow;
 
@@ -140,13 +142,14 @@ public class ReportsController : ControllerBase
             .Select(t => new TicketSlaProjection(t.Status, t.Priority, t.CreatedAtUtc, t.FirstRespondedAtUtc, t.ResolvedAtUtc))
             .ToListAsync();
 
+        var slaTargets = await TicketsController.ResolveSlaTargetsAsync(runtimeSettings);
         int responseMet = 0, responseBreached = 0, resolutionMet = 0, resolutionBreached = 0, escalated = 0;
         var responseMinutes = new List<double>();
         var resolutionMinutes = new List<double>();
 
         foreach (var t in projected)
         {
-            var (responseDue, resolutionDue) = TicketsController.ComputeDueDates(t.CreatedAtUtc, t.Priority);
+            var (responseDue, resolutionDue) = TicketsController.ComputeDueDates(t.CreatedAtUtc, t.Priority, slaTargets);
 
             if (t.FirstRespondedAtUtc.HasValue)
             {

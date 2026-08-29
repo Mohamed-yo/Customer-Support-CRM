@@ -101,6 +101,31 @@ namespace CustomerSupportCrm.Api.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("CustomerSupportCrm.Api.Domain.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Branches");
+                });
+
             modelBuilder.Entity("CustomerSupportCrm.Api.Domain.ChannelMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -234,6 +259,31 @@ namespace CustomerSupportCrm.Api.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("CustomerSupportCrm.Api.Domain.Department", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Departments");
+                });
+
             modelBuilder.Entity("CustomerSupportCrm.Api.Domain.KnowledgeArticle", b =>
                 {
                     b.Property<Guid>("Id")
@@ -292,6 +342,12 @@ namespace CustomerSupportCrm.Api.Migrations
                     b.Property<DateTime?>("ReadAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("SourceTaskId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SourceTicketNoteId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("TicketId")
                         .HasColumnType("uniqueidentifier");
 
@@ -304,6 +360,10 @@ namespace CustomerSupportCrm.Api.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SourceTaskId")
+                        .IsUnique()
+                        .HasFilter("[Type] = 'TaskReminder' AND [SourceTaskId] IS NOT NULL");
 
                     b.HasIndex("UserId", "IsRead");
 
@@ -331,6 +391,10 @@ namespace CustomerSupportCrm.Api.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<string>("SigningSecret")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("TargetUrl")
                         .IsRequired()
@@ -395,6 +459,27 @@ namespace CustomerSupportCrm.Api.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("CustomerSupportCrm.Api.Domain.RuntimeSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ValueJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("RuntimeSettings");
+                });
+
             modelBuilder.Entity("CustomerSupportCrm.Api.Domain.Ticket", b =>
                 {
                     b.Property<Guid>("Id")
@@ -402,6 +487,9 @@ namespace CustomerSupportCrm.Api.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BranchId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Category")
@@ -413,6 +501,9 @@ namespace CustomerSupportCrm.Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DepartmentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -449,9 +540,13 @@ namespace CustomerSupportCrm.Api.Migrations
 
                     b.HasIndex("AssignedToUserId");
 
+                    b.HasIndex("BranchId");
+
                     b.HasIndex("CreatedAtUtc");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("DepartmentId");
 
                     b.ToTable("Tickets");
                 });
@@ -594,8 +689,14 @@ namespace CustomerSupportCrm.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
@@ -607,12 +708,21 @@ namespace CustomerSupportCrm.Api.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -711,15 +821,29 @@ namespace CustomerSupportCrm.Api.Migrations
                         .HasForeignKey("AssignedToUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("CustomerSupportCrm.Api.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CustomerSupportCrm.Api.Domain.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CustomerSupportCrm.Api.Domain.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("AssignedToUser");
 
+                    b.Navigation("Branch");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("CustomerSupportCrm.Api.Domain.TicketAttachment", b =>
@@ -788,6 +912,23 @@ namespace CustomerSupportCrm.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("CustomerSupportCrm.Api.Domain.User", b =>
+                {
+                    b.HasOne("CustomerSupportCrm.Api.Domain.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CustomerSupportCrm.Api.Domain.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("CustomerSupportCrm.Api.Domain.UserRole", b =>

@@ -6,6 +6,8 @@ import {
   TICKET_PRIORITIES,
   TICKET_STATUSES,
   type AssignableUser,
+  type BranchOption,
+  type DepartmentOption,
   type Ticket,
   type TicketCategory,
   type TicketPriority,
@@ -13,10 +15,13 @@ import {
   createTicket,
   deleteTicket,
   listAssignableUsers,
+  listBranchOptions,
+  listDepartmentOptions,
   listTickets,
   updateTicket,
 } from '../api/tickets';
 import { type Customer, listCustomers } from '../api/customers';
+import { suggestCategory } from '../api/ai';
 import { useAuthStore } from '../store/useAuthStore';
 
 interface TicketFormValues {
@@ -27,6 +32,8 @@ interface TicketFormValues {
   assignedToUserId: string;
   category: TicketCategory;
   priority: TicketPriority;
+  departmentId: string;
+  branchId: string;
 }
 
 const EMPTY_FORM: TicketFormValues = {
@@ -37,6 +44,8 @@ const EMPTY_FORM: TicketFormValues = {
   assignedToUserId: '',
   category: 'General',
   priority: 'Normal',
+  departmentId: '',
+  branchId: '',
 };
 
 const PRIORITY_BADGE_CLASSES: Record<TicketPriority, string> = {
@@ -87,6 +96,8 @@ export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [branches, setBranches] = useState<BranchOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scope, setScope] = useState<'all' | 'mine'>('all');
@@ -108,6 +119,9 @@ export default function TicketsPage() {
   });
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
+  const [aiCategoryLoading, setAiCategoryLoading] = useState(false);
+  const [aiCategoryMessage, setAiCategoryMessage] = useState<string | null>(null);
+
   const customerIds = new Set(customers.map((c) => c.id));
   const fieldErrors = validateForm(formValues, customerIds);
   const showCustomerError = (touched.customerId || attemptedSubmit) && fieldErrors.customerId;
@@ -117,11 +131,13 @@ export default function TicketsPage() {
   const loadData = () => {
     setLoading(true);
     setError(null);
-    Promise.all([listTickets(), listCustomers(), listAssignableUsers()])
-      .then(([ticketData, customerData, assignableUserData]) => {
+    Promise.all([listTickets(), listCustomers(), listAssignableUsers(), listDepartmentOptions(), listBranchOptions()])
+      .then(([ticketData, customerData, assignableUserData, departmentData, branchData]) => {
         setTickets(ticketData);
         setCustomers(customerData);
         setAssignableUsers(assignableUserData);
+        setDepartments(departmentData);
+        setBranches(branchData);
       })
       .catch(() => setError(t('tickets.errors.loadFailed')))
       .finally(() => setLoading(false));
@@ -146,6 +162,7 @@ export default function TicketsPage() {
     setFormError(null);
     setTouched({ customerId: false, subject: false, description: false });
     setAttemptedSubmit(false);
+    setAiCategoryMessage(null);
   };
 
   const openCreateForm = () => {
@@ -165,6 +182,8 @@ export default function TicketsPage() {
       assignedToUserId: ticket.assignedToUserId ?? '',
       category: ticket.category,
       priority: ticket.priority,
+      departmentId: ticket.departmentId ?? '',
+      branchId: ticket.branchId ?? '',
     });
     resetFormState();
     setFormOpen(true);
@@ -174,6 +193,28 @@ export default function TicketsPage() {
     setFormOpen(false);
     setEditing(null);
     setFormError(null);
+  };
+
+  // Fills the category select with the AI suggestion - the agent still must click Save to
+  // apply it. Never submits the form on its own.
+  const handleSuggestCategory = async () => {
+    if (!editing) return;
+    setAiCategoryLoading(true);
+    setAiCategoryMessage(null);
+    try {
+      const result = await suggestCategory(editing.id);
+      if (result.status === 'NotConfigured') {
+        setAiCategoryMessage(t('ai.notConfigured'));
+      } else if (result.status === 'Ok' && result.value && TICKET_CATEGORIES.includes(result.value as TicketCategory)) {
+        setFormValues((v) => ({ ...v, category: result.value as TicketCategory }));
+      } else {
+        setAiCategoryMessage(t('ai.error'));
+      }
+    } catch {
+      setAiCategoryMessage(t('ai.error'));
+    } finally {
+      setAiCategoryLoading(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -194,6 +235,8 @@ export default function TicketsPage() {
       assignedToUserId: formValues.assignedToUserId || null,
       category: formValues.category,
       priority: formValues.priority,
+      departmentId: formValues.departmentId || null,
+      branchId: formValues.branchId || null,
     };
 
     setSubmitting(true);
@@ -215,6 +258,8 @@ export default function TicketsPage() {
         'assignee_not_found',
         'category_invalid',
         'priority_invalid',
+        'department_not_found',
+        'branch_not_found',
       ];
       setFormError(
         code && knownCodes.includes(code) ? t(`tickets.errors.${code}`) : t('tickets.errors.saveFailed'),
@@ -464,7 +509,19 @@ export default function TicketsPage() {
             </label>
 
             <label className="flex flex-col gap-1 text-sm text-slate-700">
-              <span>{t('tickets.form.category')}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span>{t('tickets.form.category')}</span>
+                {editing && (
+                  <button
+                    type="button"
+                    onClick={handleSuggestCategory}
+                    disabled={aiCategoryLoading}
+                    className="text-xs font-medium text-slate-600 hover:text-slate-900 disabled:opacity-60"
+                  >
+                    {aiCategoryLoading ? t('ai.loading') : t('ai.suggestCategory')}
+                  </button>
+                )}
+              </div>
               <select
                 value={formValues.category}
                 onChange={(e) => setFormValues((v) => ({ ...v, category: e.target.value as TicketCategory }))}
@@ -476,6 +533,7 @@ export default function TicketsPage() {
                   </option>
                 ))}
               </select>
+              {aiCategoryMessage && <span className="text-xs text-slate-500">{aiCategoryMessage}</span>}
             </label>
 
             <label className="flex flex-col gap-1 text-sm text-slate-700">
@@ -488,6 +546,38 @@ export default function TicketsPage() {
                 {TICKET_PRIORITIES.map((priority) => (
                   <option key={priority} value={priority}>
                     {t(`tickets.priority.${priority}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <span>{t('tickets.form.department')}</span>
+              <select
+                value={formValues.departmentId}
+                onChange={(e) => setFormValues((v) => ({ ...v, departmentId: e.target.value }))}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800"
+              >
+                <option value="">—</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm text-slate-700">
+              <span>{t('tickets.form.branch')}</span>
+              <select
+                value={formValues.branchId}
+                onChange={(e) => setFormValues((v) => ({ ...v, branchId: e.target.value }))}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800"
+              >
+                <option value="">—</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
                   </option>
                 ))}
               </select>

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useBranding } from '../../hooks/useBranding';
 import LanguageToggle from '../LanguageToggle';
 import NotificationBell from '../NotificationBell';
 
@@ -19,18 +19,25 @@ const NAV_ITEMS: Array<{ to: string; labelKey: string; adminOnly?: boolean }> = 
   { to: '/webhooks', labelKey: 'shell.nav.webhooks', adminOnly: true },
   { to: '/reports', labelKey: 'shell.nav.reports', adminOnly: true },
   { to: '/api-keys', labelKey: 'shell.nav.apiKeys', adminOnly: true },
+  { to: '/admin/users', labelKey: 'shell.nav.adminUsers', adminOnly: true },
+  { to: '/admin/audit-log', labelKey: 'shell.nav.adminAuditLog', adminOnly: true },
+  { to: '/admin/departments', labelKey: 'shell.nav.departments', adminOnly: true },
+  { to: '/admin/branches', labelKey: 'shell.nav.branches', adminOnly: true },
+  { to: '/admin/branding', labelKey: 'shell.nav.branding', adminOnly: true },
+  { to: '/admin/sla-targets', labelKey: 'shell.nav.slaTargets', adminOnly: true },
+  { to: '/admin/reminder-lead-time', labelKey: 'shell.nav.reminderLeadTime', adminOnly: true },
 ];
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
   `rounded px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 ${
-    isActive ? 'bg-slate-800 text-white' : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200'
+    isActive ? 'bg-[var(--brand-primary,#1e293b)] text-white' : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200'
   }`;
 
 export default function AppShell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const appName = useAppStore((s) => s.appName);
+  const { appName, logoDataUrl, primaryColorHex } = useBranding();
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
   const isAdmin = useAuthStore((s) => s.hasRole('Admin'));
@@ -67,7 +74,10 @@ export default function AppShell() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div
+      className="flex min-h-screen bg-slate-50"
+      style={primaryColorHex ? ({ '--brand-primary': primaryColorHex } as CSSProperties) : undefined}
+    >
       {drawerOpen && (
         <div
           className="fixed inset-0 z-30 bg-slate-900/50 lg:hidden"
@@ -80,7 +90,10 @@ export default function AppShell() {
         className={`${drawerOpen ? 'flex' : 'hidden'} lg:flex fixed inset-y-0 start-0 z-40 w-64 flex-col gap-6 bg-white px-4 py-6 shadow-sm lg:static`}
         aria-label={t('shell.sidebar')}
       >
-        <span className="text-lg font-semibold text-slate-800">{appName}</span>
+        <div className="flex items-center gap-2">
+          {logoDataUrl && <img src={logoDataUrl} alt="" className="h-7 w-7 rounded object-contain" />}
+          <span className="text-lg font-semibold text-slate-800">{appName}</span>
+        </div>
 
         <nav aria-label="Primary" className="flex flex-col gap-1">
           {visibleNavItems.map((item) => (

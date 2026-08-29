@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   type HistoryEntry,
+  type MentionableUser,
   type Ticket,
   type TicketAttachment,
   type TicketNote,
@@ -14,6 +15,7 @@ import {
   downloadTicketAttachment,
   getTicket,
   getTicketHistory,
+  listMentionableUsers,
   listTicketAttachments,
   listTicketNotes,
   listTicketTasks,
@@ -22,6 +24,7 @@ import {
 } from '../api/tickets';
 import { type Customer, getCustomer } from '../api/customers';
 import { listQuickReplies, type QuickReplyTemplate } from '../api/quickReplies';
+import { type AiKbArticleSuggestion, suggestKbArticles, suggestReply, summarizeTicket } from '../api/ai';
 import ChatWidget from '../components/ChatWidget';
 
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
@@ -49,6 +52,18 @@ export default function TicketDetailPage() {
   const [noteBody, setNoteBody] = useState('');
   const [selectedQuickReply, setSelectedQuickReply] = useState('');
   const [noteSubmitting, setNoteSubmitting] = useState(false);
+
+  const [aiLoading, setAiLoading] = useState<'summarize' | 'reply' | 'kb' | null>(null);
+  const [aiResult, setAiResult] = useState<
+    { kind: 'summarize' | 'reply'; text: string } | { kind: 'kb'; articles: AiKbArticleSuggestion[] } | null
+  >(null);
+  const [aiNotConfigured, setAiNotConfigured] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionRange, setMentionRange] = useState<{ start: number; end: number } | null>(null);
+  const [mentionCandidates, setMentionCandidates] = useState<MentionableUser[]>([]);
+  const [mentionedUsers, setMentionedUsers] = useState<Map<string, MentionableUser>>(new Map());
 
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -98,15 +113,117 @@ export default function TicketDetailPage() {
     }
   };
 
+  // Detects an in-progress "@word" token ending at the cursor - the last "@" before the
+  // cursor with no whitespace between it and the cursor.
+  const detectMentionRange = (text: string, cursorPos: number): { start: number; end: number } | null => {
+    const upToCursor = text.slice(0, cursorPos);
+    const at = upToCursor.lastIndexOf('@');
+    if (at === -1) return null;
+    const token = upToCursor.slice(at + 1);
+    if (/\s/.test(token)) return null;
+    return { start: at, end: cursorPos };
+  };
+
+  const handleNoteBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setNoteBody(value);
+    const range = detectMentionRange(value, e.target.selectionStart);
+    setMentionRange(range);
+    const query = range ? value.slice(range.start + 1, range.end) : null;
+    setMentionQuery(query);
+    if (query !== null) {
+      listMentionableUsers(query || undefined)
+        .then(setMentionCandidates)
+        .catch(() => setMentionCandidates([]));
+    }
+  };
+
+  const handleSelectMention = (candidate: MentionableUser) => {
+    if (!mentionRange) return;
+    const before = noteBody.slice(0, mentionRange.start);
+    const after = noteBody.slice(mentionRange.end);
+    setNoteBody(`${before}@${candidate.displayName} ${after}`);
+    setMentionedUsers((prev) => new Map(prev).set(candidate.id, candidate));
+    setMentionQuery(null);
+    setMentionRange(null);
+    setMentionCandidates([]);
+  };
+
+  const handleSummarize = async () => {
+    if (!id) return;
+    setAiLoading('summarize');
+    setAiError(null);
+    setAiNotConfigured(false);
+    try {
+      const result = await summarizeTicket(id);
+      if (result.status === 'NotConfigured') setAiNotConfigured(true);
+      else if (result.status === 'Ok') setAiResult({ kind: 'summarize', text: result.value ?? '' });
+      else setAiError(t('ai.error'));
+    } catch {
+      setAiError(t('ai.error'));
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleSuggestReply = async () => {
+    if (!id) return;
+    setAiLoading('reply');
+    setAiError(null);
+    setAiNotConfigured(false);
+    try {
+      const result = await suggestReply(id);
+      if (result.status === 'NotConfigured') setAiNotConfigured(true);
+      else if (result.status === 'Ok') setAiResult({ kind: 'reply', text: result.value ?? '' });
+      else setAiError(t('ai.error'));
+    } catch {
+      setAiError(t('ai.error'));
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleSuggestKb = async () => {
+    if (!id) return;
+    setAiLoading('kb');
+    setAiError(null);
+    setAiNotConfigured(false);
+    try {
+      const result = await suggestKbArticles(id);
+      if (result.status === 'NotConfigured') setAiNotConfigured(true);
+      else if (result.status === 'Ok') setAiResult({ kind: 'kb', articles: result.value ?? [] });
+      else setAiError(t('ai.error'));
+    } catch {
+      setAiError(t('ai.error'));
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  // The agent must explicitly click Apply - an AI suggestion is never auto-inserted or
+  // auto-sent.
+  const handleApplySuggestedReply = () => {
+    if (aiResult?.kind === 'reply') {
+      setNoteBody(aiResult.text);
+      setAiResult(null);
+    }
+  };
+
   const handleAddNote = async (e: FormEvent) => {
     e.preventDefault();
     if (!id || !noteBody.trim()) return;
     setNoteSubmitting(true);
     try {
-      const note = await createTicketNote(id, noteBody.trim());
+      // Only ids whose "@DisplayName" text still appears in the note survive - if the agent
+      // deleted the mention text, they're no longer mentioned.
+      const mentionedUserIds = [...mentionedUsers.values()]
+        .filter((u) => noteBody.includes(`@${u.displayName}`))
+        .map((u) => u.id);
+      const note = await createTicketNote(id, noteBody.trim(), mentionedUserIds);
       setNotes((prev) => [...prev, note]);
       setNoteBody('');
       setSelectedQuickReply('');
+      setMentionedUsers(new Map());
     } catch {
       setError(t('ticketDetail.notes.saveFailed'));
     } finally {
@@ -255,6 +372,81 @@ export default function TicketDetailPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="flex flex-col gap-6 md:col-span-2">
+          {/* AI assistant */}
+          <section className="rounded border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('ai.chat.title')}</h2>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleSummarize}
+                disabled={aiLoading !== null}
+                className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              >
+                {t('ai.summarize')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSuggestReply}
+                disabled={aiLoading !== null}
+                className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              >
+                {t('ai.suggestReply')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSuggestKb}
+                disabled={aiLoading !== null}
+                className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              >
+                {t('ai.suggestKbArticles')}
+              </button>
+            </div>
+
+            {aiLoading && <p className="mt-3 text-sm text-slate-400">{t('ai.loading')}</p>}
+            {aiNotConfigured && <p className="mt-3 text-sm text-slate-500">{t('ai.notConfigured')}</p>}
+            {aiError && <p className="mt-3 text-sm text-red-600">{aiError}</p>}
+
+            {aiResult && (
+              <div className="mt-3 rounded bg-slate-50 p-3">
+                {aiResult.kind === 'kb' ? (
+                  aiResult.articles.length === 0 ? (
+                    <p className="text-sm text-slate-500">{t('kb.empty')}</p>
+                  ) : (
+                    <ul className="flex flex-col gap-1">
+                      {aiResult.articles.map((article) => (
+                        <li key={article.id} className="text-sm text-slate-800">
+                          {article.title}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                ) : (
+                  <>
+                    <p className="whitespace-pre-wrap text-sm text-slate-800">{aiResult.text}</p>
+                    <div className="mt-2 flex gap-2">
+                      {aiResult.kind === 'reply' && (
+                        <button
+                          type="button"
+                          onClick={handleApplySuggestedReply}
+                          className="rounded bg-slate-800 px-3 py-1.5 text-sm font-medium text-white"
+                        >
+                          {t('ai.apply')}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setAiResult(null)}
+                        className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                      >
+                        {t('ai.dismiss')}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+
           {/* Notes / team collaboration */}
           <section className="rounded border border-slate-200 bg-white p-4">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -290,13 +482,32 @@ export default function TicketDetailPage() {
                   ))}
                 </select>
               )}
-              <textarea
-                value={noteBody}
-                onChange={(e) => setNoteBody(e.target.value)}
-                placeholder={t('ticketDetail.notes.placeholder') ?? ''}
-                rows={3}
-                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
-              />
+              <div className="relative">
+                <textarea
+                  value={noteBody}
+                  onChange={handleNoteBodyChange}
+                  placeholder={t('mentions.placeholder') ?? ''}
+                  rows={3}
+                  className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
+                />
+                {mentionQuery !== null && mentionCandidates.length > 0 && (
+                  <ul className="absolute inset-x-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded border border-slate-300 bg-white shadow-sm">
+                    {mentionCandidates.map((candidate) => (
+                      <li key={candidate.id}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleSelectMention(candidate)}
+                          className="flex w-full flex-col items-start px-3 py-2 text-start text-sm hover:bg-slate-100"
+                        >
+                          <span className="text-slate-800">{candidate.displayName}</span>
+                          <span className="text-xs text-slate-500">{candidate.email}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <button
                 type="submit"
                 disabled={noteSubmitting || !noteBody.trim()}

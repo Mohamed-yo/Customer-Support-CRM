@@ -35,4 +35,10 @@ public class Ticket
     // Allowed values: "Manual", "Portal", "WebForm", "Email", "WhatsApp", "SMS", "Chat".
     // Enforced in controller. Existing rows backfill to "Manual".
     public string Source { get; set; } = "Manual";
+
+    public Guid? DepartmentId { get; set; }
+    public Department? Department { get; set; }
+
+    public Guid? BranchId { get; set; }
+    public Branch? Branch { get; set; }
 }

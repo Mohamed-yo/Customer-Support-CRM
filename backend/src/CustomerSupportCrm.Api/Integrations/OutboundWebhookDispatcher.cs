@@ -1,4 +1,6 @@
-using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using CustomerSupportCrm.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,12 +48,33 @@ public sealed class OutboundWebhookDispatcher : IOutboundWebhookDispatcher
         if (subscriptions.Count == 0) return;
 
         var body = new { @event = eventType, data = payload };
+        var bodyJson = JsonSerializer.Serialize(body);
 
         foreach (var subscription in subscriptions)
         {
             try
             {
-                using var response = await _httpClient.PostAsJsonAsync(subscription.TargetUrl, body, ct);
+                using var request = new HttpRequestMessage(HttpMethod.Post, subscription.TargetUrl)
+                {
+                    Content = new StringContent(bodyJson, Encoding.UTF8, "application/json"),
+                };
+
+                // Story 15 Phase 4: HMAC-SHA256 over "{timestamp}.{body}" lets a receiver
+                // verify authenticity and reject stale/replayed deliveries. Pre-existing
+                // subscriptions are backfilled with a secret by migration, so this should
+                // always be present - the null-skip is defensive, not an expected path.
+                if (!string.IsNullOrEmpty(subscription.SigningSecret))
+                {
+                    var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                    var signaturePayload = $"{timestamp}.{bodyJson}";
+                    var signatureBytes = HMACSHA256.HashData(Encoding.UTF8.GetBytes(subscription.SigningSecret), Encoding.UTF8.GetBytes(signaturePayload));
+                    var signatureHex = Convert.ToHexString(signatureBytes).ToLowerInvariant();
+
+                    request.Headers.Add("X-Squad-Timestamp", timestamp);
+                    request.Headers.Add("X-Squad-Signature", $"sha256={signatureHex}");
+                }
+
+                using var response = await _httpClient.SendAsync(request, ct);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning(

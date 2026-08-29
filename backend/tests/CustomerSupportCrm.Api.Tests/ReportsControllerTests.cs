@@ -1,3 +1,4 @@
+using CustomerSupportCrm.Api.Configuration;
 using CustomerSupportCrm.Api.Controllers;
 using CustomerSupportCrm.Api.Data;
 using CustomerSupportCrm.Api.Domain;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 
 namespace CustomerSupportCrm.Api.Tests;
@@ -15,6 +17,13 @@ public class ReportsControllerTests
         new(new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
+
+    // Story 15: ReportsController's SLA endpoints now resolve targets through
+    // IRuntimeSettings - a real RuntimeSettingsService (backed by the same InMemory db and
+    // a fresh cache) exercises the exact fallback-to-default path these pre-Story-15 tests
+    // already assert on.
+    private static IRuntimeSettings NewRuntimeSettings(AppDbContext db) =>
+        new RuntimeSettingsService(db, new MemoryCache(new MemoryCacheOptions()));
 
     private static ReportsController NewController() =>
         new() { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() } };
@@ -104,7 +113,7 @@ public class ReportsControllerTests
         await db.SaveChangesAsync();
 
         var report = await GetValue<SlaPerformanceReport>(
-            NewController().GetSlaPerformance(db, new ReportDateRangeQuery(null, null)));
+            NewController().GetSlaPerformance(db, NewRuntimeSettings(db), new ReportDateRangeQuery(null, null)));
 
         Assert.Equal(4, report.TotalConsidered);
         Assert.Equal(1, report.ResponseMet);
@@ -130,7 +139,7 @@ public class ReportsControllerTests
         await db.SaveChangesAsync();
 
         var report = await GetValue<SlaPerformanceReport>(
-            NewController().GetSlaPerformance(db, new ReportDateRangeQuery(null, null)));
+            NewController().GetSlaPerformance(db, NewRuntimeSettings(db), new ReportDateRangeQuery(null, null)));
 
         Assert.Equal(1, report.EscalatedCount);
     }
@@ -212,7 +221,7 @@ public class ReportsControllerTests
         await db.SaveChangesAsync();
 
         var report = await GetValue<ManagementDashboardReport>(
-            NewController().GetDashboard(db, new ReportDateRangeQuery(null, null)));
+            NewController().GetDashboard(db, NewRuntimeSettings(db), new ReportDateRangeQuery(null, null)));
 
         Assert.Equal(1, report.Tickets.Total);
         Assert.NotNull(report.Sla);

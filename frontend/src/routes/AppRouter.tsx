@@ -10,6 +10,13 @@ import KnowledgeBasePage from '../pages/KnowledgeBasePage';
 import WebFormPage from '../pages/WebFormPage';
 import WebhooksPage from '../pages/WebhooksPage';
 import ApiKeysPage from '../pages/ApiKeysPage';
+import UsersPage from '../pages/admin/UsersPage';
+import AuditLogPage from '../pages/admin/AuditLogPage';
+import DepartmentsPage from '../pages/admin/DepartmentsPage';
+import BranchesPage from '../pages/admin/BranchesPage';
+import BrandingPage from '../pages/admin/BrandingPage';
+import SlaTargetsPage from '../pages/admin/SlaTargetsPage';
+import ReminderLeadTimePage from '../pages/admin/ReminderLeadTimePage';
 import ReportsDashboardPage from '../pages/reports/ReportsDashboardPage';
 import TicketReportsPage from '../pages/reports/TicketReportsPage';
 import SlaReportPage from '../pages/reports/SlaReportPage';
@@ -43,6 +50,13 @@ export default function AppRouter() {
             <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
             <Route path="/webhooks" element={<WebhooksPage />} />
             <Route path="/api-keys" element={<ApiKeysPage />} />
+            <Route path="/admin/users" element={<UsersPage />} />
+            <Route path="/admin/audit-log" element={<AuditLogPage />} />
+            <Route path="/admin/departments" element={<DepartmentsPage />} />
+            <Route path="/admin/branches" element={<BranchesPage />} />
+            <Route path="/admin/branding" element={<BrandingPage />} />
+            <Route path="/admin/sla-targets" element={<SlaTargetsPage />} />
+            <Route path="/admin/reminder-lead-time" element={<ReminderLeadTimePage />} />
             <Route path="/reports" element={<ReportsDashboardPage />} />
             <Route path="/reports/tickets" element={<TicketReportsPage />} />
             <Route path="/reports/sla" element={<SlaReportPage />} />
