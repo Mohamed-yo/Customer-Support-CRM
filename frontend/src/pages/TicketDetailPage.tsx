@@ -26,6 +26,7 @@ import { type Customer, getCustomer } from '../api/customers';
 import { listQuickReplies, type QuickReplyTemplate } from '../api/quickReplies';
 import { type AiKbArticleSuggestion, suggestKbArticles, suggestReply, summarizeTicket } from '../api/ai';
 import ChatWidget from '../components/ChatWidget';
+import { useBreadcrumbLabel } from '../components/layout/useBreadcrumbLabel';
 
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
@@ -48,6 +49,10 @@ export default function TicketDetailPage() {
   const [quickReplies, setQuickReplies] = useState<QuickReplyTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Publishes the current breadcrumb crumb's label once loaded - null while loading
+  // (AppShell's Breadcrumbs falls back to the parent's label, never the raw :id).
+  useBreadcrumbLabel(ticket?.subject ?? null);
 
   const [noteBody, setNoteBody] = useState('');
   const [selectedQuickReply, setSelectedQuickReply] = useState('');

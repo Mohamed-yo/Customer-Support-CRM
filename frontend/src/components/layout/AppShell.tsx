@@ -5,6 +5,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBranding } from '../../hooks/useBranding';
 import LanguageToggle from '../LanguageToggle';
 import NotificationBell from '../NotificationBell';
+import Breadcrumbs from './Breadcrumbs';
+import { BreadcrumbLabelContext } from './useBreadcrumbLabel';
 
 // Extensibility point: future stories add sections here (Tickets, Customers, Agents,
 // Reports, Settings, ...) without touching the shell's structure.
@@ -45,14 +47,18 @@ export default function AppShell() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const [dynamicBreadcrumbLabel, setDynamicBreadcrumbLabel] = useState<string | null>(null);
 
-  // Close the mobile drawer whenever the route changes. Reset during render
-  // (React's documented pattern for "adjusting state when a prop changes")
-  // instead of in an effect, to avoid an extra post-commit render pass.
+  // Close the mobile drawer and clear any published dynamic breadcrumb label whenever the
+  // route changes. Reset during render (React's documented pattern for "adjusting state
+  // when a prop changes") instead of in an effect, to avoid an extra post-commit render
+  // pass. Without the label reset, navigating from e.g. /tickets/1 to /customers could
+  // briefly show the previous page's stale dynamic label.
   const [lastPathname, setLastPathname] = useState(location.pathname);
   if (location.pathname !== lastPathname) {
     setLastPathname(location.pathname);
     setDrawerOpen(false);
+    setDynamicBreadcrumbLabel(null);
   }
 
   // Close on Escape and return focus to the toggle button.
@@ -95,6 +101,13 @@ export default function AppShell() {
           <span className="text-lg font-semibold text-slate-800">{appName}</span>
         </div>
 
+        <div className="flex flex-col gap-4 border-b border-slate-200 pb-4">
+          <div className="flex flex-col gap-0.5 text-sm">
+            <span className="font-medium text-slate-800">{user?.displayName}</span>
+            <span className="text-slate-500">{user?.email}</span>
+          </div>
+        </div>
+
         <nav aria-label="Primary" className="flex flex-col gap-1">
           {visibleNavItems.map((item) => (
             <NavLink key={item.to} to={item.to} end className={navLinkClassName}>
@@ -102,26 +115,11 @@ export default function AppShell() {
             </NavLink>
           ))}
         </nav>
-
-        <div className="mt-auto flex flex-col gap-4 border-t border-slate-200 pt-4">
-          <div className="flex flex-col gap-0.5 text-sm">
-            <span className="font-medium text-slate-800">{user?.displayName}</span>
-            <span className="text-slate-500">{user?.email}</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 active:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800"
-          >
-            {t('auth.logout')}
-          </button>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               ref={menuButtonRef}
               type="button"
@@ -132,7 +130,7 @@ export default function AppShell() {
             >
               <MenuIcon open={drawerOpen} />
             </button>
-            <span className="text-base font-semibold text-slate-800 lg:text-lg">{appName}</span>
+            <Breadcrumbs currentDynamicLabel={dynamicBreadcrumbLabel} />
           </div>
 
           <div className="flex items-center gap-2">
@@ -152,7 +150,9 @@ export default function AppShell() {
 
         <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mx-auto w-full max-w-5xl">
-            <Outlet />
+            <BreadcrumbLabelContext.Provider value={setDynamicBreadcrumbLabel}>
+              <Outlet />
+            </BreadcrumbLabelContext.Provider>
           </div>
         </main>
       </div>

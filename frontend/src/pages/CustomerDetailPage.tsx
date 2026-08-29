@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { type Customer, getCustomer, getCustomerHistory } from '../api/customers';
 import { type HistoryEntry, type Ticket, listTickets } from '../api/tickets';
+import { useBreadcrumbLabel } from '../components/layout/useBreadcrumbLabel';
 
 export default function CustomerDetailPage() {
   const { t } = useTranslation();
@@ -14,6 +15,10 @@ export default function CustomerDetailPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Publishes the current breadcrumb crumb's label once loaded - null while loading
+  // (AppShell's Breadcrumbs falls back to the parent's label, never the raw :id).
+  useBreadcrumbLabel(customer?.fullName ?? null);
 
   useEffect(() => {
     if (!id) return;
