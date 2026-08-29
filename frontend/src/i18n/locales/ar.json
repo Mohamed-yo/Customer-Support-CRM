@@ -6,14 +6,49 @@
     "languageArabic": "العربية"
   },
   "home": {
-    "backendHealth": "حالة الخادم",
-    "statusUnknown": "غير معروف",
-    "statusUnreachable": "غير متاح"
+    "title": "لوحة التحكم",
+    "kpis": {
+      "total": "إجمالي التذاكر",
+      "open": "مفتوحة",
+      "inProgress": "قيد المعالجة",
+      "closed": "مغلقة",
+      "escalated": "متصاعدة"
+    },
+    "myWork": {
+      "title": "أعمالي",
+      "myTickets": "تذاكري المعيَّنة",
+      "myTicketsEmpty": "لا توجد تذاكر معيَّنة.",
+      "unreadNotifications": "الإشعارات غير المقروءة",
+      "myTasks": "مهامي المعلَّقة",
+      "myTasksEmpty": "لا توجد مهام معلَّقة.",
+      "dueAt": "الاستحقاق",
+      "noDueDate": "لا يوجد تاريخ استحقاق"
+    },
+    "admin": {
+      "title": "الملخص التشغيلي",
+      "unassignedOpen": "تذاكر مفتوحة غير معيَّنة",
+      "escalatedOpen": "تذاكر مفتوحة متصاعدة",
+      "topAgents": "أفضل الوكلاء",
+      "agent": "الوكيل",
+      "openAssigned": "المعيَّن المفتوح",
+      "resolved": "تم الحل",
+      "avgSatisfaction": "متوسط الرضا",
+      "viewFullReports": "عرض التقارير الكاملة"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "goToTickets": "الذهاب إلى التذاكر",
+      "goToCustomers": "الذهاب إلى العملاء",
+      "goToKnowledge": "قاعدة المعرفة"
+    },
+    "states": {
+      "error": "تعذر تحميل لوحة التحكم."
+    }
   },
   "customers": {
     "title": "العملاء",
     "new": "عميل جديد",
-    "edit": "تعديل العميل",
+    "edit": "تعديل",
     "view": "عرض",
     "delete": "حذف",
     "deleteConfirm": "هل تريد حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء.",

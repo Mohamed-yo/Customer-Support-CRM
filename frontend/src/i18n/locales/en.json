@@ -6,14 +6,49 @@
     "languageArabic": "العربية"
   },
   "home": {
-    "backendHealth": "Backend health",
-    "statusUnknown": "unknown",
-    "statusUnreachable": "unreachable"
+    "title": "Dashboard",
+    "kpis": {
+      "total": "Total tickets",
+      "open": "Open",
+      "inProgress": "In progress",
+      "closed": "Closed",
+      "escalated": "Escalated"
+    },
+    "myWork": {
+      "title": "My Work",
+      "myTickets": "My assigned tickets",
+      "myTicketsEmpty": "No assigned tickets.",
+      "unreadNotifications": "Unread notifications",
+      "myTasks": "My outstanding tasks",
+      "myTasksEmpty": "No outstanding tasks.",
+      "dueAt": "Due",
+      "noDueDate": "No due date"
+    },
+    "admin": {
+      "title": "Operational Summary",
+      "unassignedOpen": "Unassigned open tickets",
+      "escalatedOpen": "Escalated open tickets",
+      "topAgents": "Top agents",
+      "agent": "Agent",
+      "openAssigned": "Open assigned",
+      "resolved": "Resolved",
+      "avgSatisfaction": "Avg. satisfaction",
+      "viewFullReports": "View full reports"
+    },
+    "quickActions": {
+      "title": "Quick actions",
+      "goToTickets": "Go to tickets",
+      "goToCustomers": "Go to customers",
+      "goToKnowledge": "Knowledge base"
+    },
+    "states": {
+      "error": "Failed to load the dashboard."
+    }
   },
   "customers": {
     "title": "Customers",
     "new": "New customer",
-    "edit": "Edit customer",
+    "edit": "Edit",
     "view": "View",
     "delete": "Delete",
     "deleteConfirm": "Delete this customer? This cannot be undone.",
