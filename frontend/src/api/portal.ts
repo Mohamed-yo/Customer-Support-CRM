@@ -47,13 +47,18 @@ export interface PortalSubmitTicketRequest {
   priority?: string | null;
 }
 
+// Sends a verification link to the email; no session is created until the customer opens
+// it and chooses a password (verifyCustomerEmail).
 export async function registerCustomer(payload: {
   fullName: string;
   email: string;
   phone?: string | null;
-  password: string;
-}): Promise<CustomerLoginResponse> {
-  const { data } = await portalHttpClient.post<CustomerLoginResponse>('/api/portal/auth/register', payload);
+}): Promise<void> {
+  await portalHttpClient.post('/api/portal/auth/register', payload);
+}
+
+export async function verifyCustomerEmail(token: string, password: string): Promise<CustomerLoginResponse> {
+  const { data } = await portalHttpClient.post<CustomerLoginResponse>('/api/portal/auth/verify-email', { token, password });
   return data;
 }
 

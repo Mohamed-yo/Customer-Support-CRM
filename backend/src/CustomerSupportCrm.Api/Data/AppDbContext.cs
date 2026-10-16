@@ -94,6 +94,8 @@ public class AppDbContext : DbContext
             e.Property(c => c.Email).HasMaxLength(256);
             e.Property(c => c.Phone).HasMaxLength(64);
             e.Property(c => c.PasswordHash).HasMaxLength(512);
+            e.Property(c => c.EmailVerificationTokenHash).HasMaxLength(64);
+            e.HasIndex(c => c.EmailVerificationTokenHash).IsUnique().HasFilter("[EmailVerificationTokenHash] IS NOT NULL");
             // Unique (was non-unique through Story 10): a customer portal login (Story 11)
             // must resolve exactly one Customer row per email. No duplicate emails exist in
             // current data, so this tightening is safe to apply.

@@ -367,19 +367,30 @@
       "fullName": "Full name",
       "email": "Email",
       "phone": "Phone (optional)",
-      "password": "Password",
-      "confirmPassword": "Confirm password",
       "submit": "Create account",
       "submitting": "Creating account…",
       "loginLink": "Already have an account? Sign in",
+      "checkEmail": "Check your inbox. We sent a link to {{email}} — open it to choose your password and finish creating your account. The link expires in 24 hours.",
       "errors": {
         "nameRequired": "Full name is required.",
         "emailRequired": "Email is required.",
         "emailInvalid": "Enter a valid email address.",
-        "passwordTooShort": "Password must be at least 8 characters.",
-        "passwordMismatch": "Passwords do not match.",
         "emailTaken": "An account with this email already has a password. Try signing in instead.",
         "saveFailed": "Failed to create your account. Please try again."
+      }
+    },
+    "verifyEmail": {
+      "title": "Choose your password",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "submit": "Set password and sign in",
+      "submitting": "Saving…",
+      "registerLink": "Back to registration",
+      "errors": {
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordMismatch": "Passwords do not match.",
+        "tokenInvalid": "This link is invalid or has expired. Register again to get a new one.",
+        "saveFailed": "Could not set your password. Please try again."
       }
     },
     "submitTicket": {

@@ -57,6 +57,7 @@ builder.Services.AddSingleton<JwtTokenService>();
 // known mutation points (login, role assignment) is used instead of a generic
 // SaveChanges interceptor, which would also audit unrelated calls (e.g. the dev seed).
 builder.Services.AddScoped<AuditLogger>();
+builder.Services.Configure<PortalOptions>(builder.Configuration.GetSection("Portal"));
 
 // Story 12: channel/integration configuration - blank in the committed appsettings.json
 // (see Jwt:SigningKey precedent), real values only in appsettings.Development.json.

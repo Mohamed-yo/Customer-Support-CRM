@@ -18,9 +18,15 @@ public class Customer
     // filtered unique index).
     public string? Phone { get; set; }
 
-    // Null until the customer registers a portal login (Story 11). A customer record
-    // created by staff (Stories 06-10) has no login capability until then.
+    // Null until the customer completes portal email verification - the password is chosen
+    // on the verification step, never at register time, so only someone who controls the
+    // mailbox can set it. A staff/channel-created record has no login capability until then.
     public string? PasswordHash { get; set; }
+
+    // SHA-256 (hex) of the one outstanding portal verification token, and when it expires.
+    // Both null when nothing is pending. The raw token only ever exists in the emailed link.
+    public string? EmailVerificationTokenHash { get; set; }
+    public DateTime? EmailVerificationExpiresAtUtc { get; set; }
 
     // Set on create; never mutated. UTC.
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

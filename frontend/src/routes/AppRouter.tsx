@@ -24,6 +24,7 @@ import AgentReportPage from '../pages/reports/AgentReportPage';
 import SatisfactionReportPage from '../pages/reports/SatisfactionReportPage';
 import PortalLoginPage from '../pages/portal/PortalLoginPage';
 import PortalRegisterPage from '../pages/portal/PortalRegisterPage';
+import PortalVerifyEmailPage from '../pages/portal/PortalVerifyEmailPage';
 import SubmitTicketPage from '../pages/portal/SubmitTicketPage';
 import MyRequestsPage from '../pages/portal/MyRequestsPage';
 import MyRequestDetailPage from '../pages/portal/MyRequestDetailPage';
@@ -67,6 +68,7 @@ export default function AppRouter() {
 
         <Route path="/portal/login" element={<PortalLoginPage />} />
         <Route path="/portal/register" element={<PortalRegisterPage />} />
+        <Route path="/portal/verify-email" element={<PortalVerifyEmailPage />} />
         <Route element={<RequirePortalAuth />}>
           <Route element={<PortalShell />}>
             <Route path="/portal/submit-ticket" element={<SubmitTicketPage />} />
